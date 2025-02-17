@@ -2,6 +2,12 @@
 	"folders": [
 		{
 			"path": "./smartdoor-esp32-client"
+		},
+		{
+			"path": "smartdoor-server"
+		},
+		{
+			"path": "smartdoor-client"
 		}
 	],
 	"settings": {}
