@@ -2,6 +2,13 @@
 #include <Keypad.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
+#include <HTTPClient.h>
+#include <WiFi.h>
+#include <SPI.h>
+#include <MFRC522.h>
+
+#define RFID_SS_PIN 10
+#define RFID_RST_PIN 9
 
 const int LCD_SDA_PIN = 21;
 const int LCD_SCL_PIN = 22;
@@ -21,10 +28,16 @@ byte colPins[KEYPAD_COLS] = {6, 7, 8, 9};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, KEYPAD_ROWS, KEYPAD_COLS);
 String keyboardEnter = "";
 LiquidCrystal_I2C lcd(0x00,16,2);
+MFRC522 mfrc522(RFID_SS_PIN, RFID_RST_PIN);
+
+const String ssid = "your_SSID";
+const String password = "your_PASSWORD";
 
 byte scan_i2c_address();
 void setup_lcd_device ();
 void handle_keypad_input();
+void setup_rfid();
+void handle_rfid();
 
 void setup() {
   Serial.begin(9600);
@@ -33,6 +46,17 @@ void setup() {
 
 void loop() {
   handle_keypad_input();
+}
+
+void setup_internet_connection() {
+  WiFi.begin(ssid, password);
+  print_to_lcd(0, "Connect To WiFi...");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  print_to_lcd(0, "WiFi Connected!");
+  print_to_lcd(1, "Ready");
 }
 
 void setup_lcd_device () {
@@ -119,3 +143,54 @@ void handle_keypad_input() {
     }
   }
 }
+
+void setup_rfid() {
+  SPI.begin();
+  mfrc522.PCD_Init();
+}
+
+void handle_rfid() {
+  String uidString = "";
+  if (!mfrc522.PICC_IsNewCardPresent()) {
+      return;
+  }
+  if (!mfrc522.PICC_ReadCardSerial()) {
+      return;
+  }
+  Serial.print("UID tag: ");
+  for (byte i = 0; i < mfrc522.uid.size; i++) {
+    uidString += String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+    uidString += String(mfrc522.uid.uidByte[i], HEX);
+  }
+  Serial.println(uidString);
+  mfrc522.PICC_HaltA();
+}
+
+String call_api(String endpoint, const String data) {
+  WiFiClient client;
+  HTTPClient http;
+  String response = "";
+
+  http.begin(client, endpoint);
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded"); // Adjust header if needed
+
+  int httpResponseCode = http.POST(data);
+
+  if (httpResponseCode > 0) {
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+
+    if (httpResponseCode == 200) {
+      response = http.getString();
+      Serial.println("API Response: " + response);
+    } else {
+      Serial.print("API returned an error: ");
+      Serial.println(httpResponseCode);
+    }
+  } else {
+    Serial.print("Error calling API: ");
+    Serial.println(httpResponseCode);
+  }
+  http.end();
+  return response;
+} 
