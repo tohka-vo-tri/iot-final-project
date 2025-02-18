@@ -1,4 +1,5 @@
 #include "keypad_utils.h"
+#include "serial_utils.h"
 #include <Keypad.h>
 #include <Arduino.h>
 String keyboardEnter = "";
@@ -20,9 +21,11 @@ void handle_keypad_input() {
   if (key) {
     Serial.print("Key pressed: ");
     Serial.println(key);
+    send_data(keyboardEnter, "password_input");
     if (key == '#') {
       Serial.print("You entered: ");
       Serial.println(keyboardEnter);
+      send_data(keyboardEnter, "password_check");
       keyboardEnter = "";
     } else if (key == '*') {
       keyboardEnter = "";
