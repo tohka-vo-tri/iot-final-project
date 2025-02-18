@@ -8,7 +8,7 @@ const doc = {
   host: 'localhost:8000/api',
 };
 
-const outputFile = './apidoc.json';
+const outputFile = './src/configs/swagger-output.json';
 const routes = ['./src/routes/index.ts'];
 
 /* NOTE: If you are using the express Router, you must pass in the 'routes' only the 
