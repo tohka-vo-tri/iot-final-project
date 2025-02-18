@@ -3,7 +3,6 @@
 #include <LiquidCrystal_I2C.h>
 
 LiquidCrystal_I2C lcd(0x00, 16, 2);
-
 void setup_lcd_device () {
   Wire.begin();
   byte lcdAddress = scan_i2c_address();

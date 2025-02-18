@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "smartdoor-client"
+		},
+		{
+			"path": "smartdoor-arduino-client"
 		}
 	],
 	"settings": {}

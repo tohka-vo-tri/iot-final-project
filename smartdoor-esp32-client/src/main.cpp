@@ -1,16 +1,14 @@
 #include <Arduino.h>
 #include "lcd_utils.h"
-#include "keypad_utils.h"
 #include "wifi_utils.h"
-#include "rfid_utils.h"
 
 void setup() {
   Serial.begin(9600);
   setup_lcd_device();
-  setup_internet_connection();
-  setup_rfid();
+  print_to_lcd(0, "Hello DCMM");
+  // setup_internet_connection();
 }
 
 void loop() {
-  handle_keypad_input();
+  
 }

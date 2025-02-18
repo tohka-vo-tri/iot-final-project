@@ -1,10 +1,12 @@
 #include "rfid_utils.h"
 #include <MFRC522.h>
 #include <SPI.h>
-
-MFRC522 mfrc522(10, 9);
+#define RST_PIN A0
+#define SS_PIN 10
+MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 void setup_rfid() {
+  Serial.println("RFID reader initialized");
   SPI.begin();
   mfrc522.PCD_Init();
 }
