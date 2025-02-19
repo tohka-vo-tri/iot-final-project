@@ -1,6 +1,6 @@
-#include "wifi_utils.h"
+#include "utils/wifi_utils.h"
 #include <WiFi.h>
-#include "lcd_utils.h"
+#include "utils/lcd_utils.h"
 
 const String ssid = "your_SSID";
 const String password = "your_PASSWORD";

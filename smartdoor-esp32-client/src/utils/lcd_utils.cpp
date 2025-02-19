@@ -1,4 +1,4 @@
-#include "lcd_utils.h"
+#include "utils/lcd_utils.h"
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
