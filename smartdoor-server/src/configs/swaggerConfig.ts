@@ -10,7 +10,10 @@ const doc = {
 };
 
 const outputFile = './swagger-output.json';
-const endpointsFiles = ['./src/routes/index.ts']; // Đường dẫn tới file router chính
+const endpointsFiles = [
+  '@/src/routes/auth.routes.ts', 
+  '@/src/routes/history.routes.ts', 
+];
 
 swaggerAutogen()(outputFile, endpointsFiles, doc).then(() => {
   console.log('Swagger documentation generated!');
