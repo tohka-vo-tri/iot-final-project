@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import axios from "axios";
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
+import Link from "next/link";
+import { useState } from "react";
+
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -21,7 +23,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8080/login", formData);
+      const response = await axios.post(`${baseUrl}/register`, formData);
       console.log("Login successful:", response.data);
       alert("Login successful!");
       // Handle token storage or navigation after login
