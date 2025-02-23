@@ -1,37 +1,35 @@
 #include "utils/api_utils.h"
 #include <Arduino.h>
 String call_api(String endpoint, HttpMethod method, String data) {
-  WiFiClient client;
+  WiFiClientSecure client;
+  client.setInsecure();
+  client.setTimeout(5000);
   HTTPClient http;
   String response = "";
 
-  http.begin(client, endpoint);
+  Serial.println("Endpoint: " + endpoint);
+  Serial.println("Request Data: " + data);
 
-  if (method == POST) {
-    http.addHeader("Content-Type", "application/x-www-form-urlencoded");
-  }
+  http.begin(client, endpoint);
+  http.addHeader("Content-Type", "application/json");
 
   int httpResponseCode = -1;
-  if (method == GET) {
+
+  if (method == HttpMethod::GET) {
     httpResponseCode = http.GET();
-  } else if (method == POST) {
+  } 
+  else if (method == HttpMethod::POST) {
     httpResponseCode = http.POST(data);
   }
 
-  if (httpResponseCode > 0) {
-    Serial.print("HTTP Response code: ");
-    Serial.println(httpResponseCode);
+  Serial.print("HTTP Response code: ");
+  Serial.println(httpResponseCode);
 
-    if (httpResponseCode == 200) {
-      response = http.getString();
-      Serial.println("API Response: " + response);
-    } else {
-      Serial.print("Error from API: ");
-      Serial.println(httpResponseCode);
-    }
+  if (httpResponseCode > 0) {
+    response = http.getString();
+    Serial.println("API Response: " + response);
   } else {
-    Serial.print("Error calling API: ");
-    Serial.println(httpResponseCode);
+    Serial.println("Error calling API");
   }
 
   http.end();

@@ -7,6 +7,7 @@ set +o allexport
 echo "BASE_API_URL: $BASE_API_URL"
 echo "WIFI_SSID: $WIFI_SSID"
 echo "WIFI_PASS: $WIFI_PASS"
+echo "DEVICE_ID: $DEVICE_ID"
 
 pio run --target upload
 
