@@ -7,6 +7,9 @@ on:
 jobs:
   build-image:
     runs-on: ubuntu-latest
+    env:
+      API_BASE_URL: ${{secrets.API_BASE_URL}}
+      REGISTRY_USERNAME: ghcr.io/${{github.actor}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,9 +23,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          API_BASE_URL: ${{secrets.API_BASE_URL}}
-          REGISTRY_USERNAME: ghcr.io/${{github.actor}}
       - name: Build and push Docker image
         run: | 
           docker compose build smartdoor-server smartdoor-client
