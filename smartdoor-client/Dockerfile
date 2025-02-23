@@ -5,7 +5,7 @@ WORKDIR /installer
 RUN mkdir -p /installer
 
 COPY package.json ./ 
-
+RUN corepack enable && corepack prepare yarn@4.6.0 --activate
 RUN yarn install --frozen-lockfile || yarn install
 COPY . .
 ARG API_BASE_URL
