@@ -10,5 +10,5 @@ extern LiquidCrystal_I2C lcd;
 void setup_lcd_device();
 byte scan_i2c_address();
 void print_to_lcd(byte row, String message);
-
+void clear_display();
 #endif

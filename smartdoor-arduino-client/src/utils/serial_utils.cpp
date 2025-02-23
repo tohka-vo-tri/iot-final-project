@@ -1,4 +1,4 @@
-#include "serial_utils.h"
+#include "utils/serial_utils.h"
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <ArduinoJson.h>
@@ -13,12 +13,9 @@ void setup_software_serial () {
 }
 
 void send_data(String data, String key) {
-    JsonDocument doc; doc;
-    doc[key] = data;
-    String jsonString;
-    serializeJson(doc, jsonString);
-    serial.println(jsonString);
-    Serial.println(data);
+    String compress = key + ":" + data;
+    serial.println(compress);
+    Serial.println(compress);
 }
 String read_data() {
     if (serial.available()) {
