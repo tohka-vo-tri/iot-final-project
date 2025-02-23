@@ -28,6 +28,11 @@ export default function LoginPage() {
       const response = await axios.post(`${baseUrl}/auth/login`, formData);
       console.log("Login successful:", response.data);
       alert("Login successful!");
+      const { token } = response.data; 
+
+      localStorage.setItem("token", token);
+
+      // Redirect to /user page
       router.push("/user");
 
     } catch (error) {

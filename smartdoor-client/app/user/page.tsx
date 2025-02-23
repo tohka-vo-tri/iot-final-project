@@ -78,8 +78,10 @@ export default function UserDetailPage() {
   }, []);
 
   useEffect(() => {
-    fetchUserData();
-  })
+    if (token) {
+      fetchUserData()
+    }
+  }, [token])
 
   const fetchUserData = async () => {
     try {
@@ -100,7 +102,7 @@ export default function UserDetailPage() {
   const handleCreateDevice = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8080/devices",
+        "http://localhost:8080/devices/init-device",
         { name: newDeviceName },
         {
           headers: {
