@@ -12,7 +12,7 @@ void setup()
   Serial.begin(9600);
   setup_lcd_device();
   setup_serial();
-  setup_internet_connection();
+  // setup_internet_connection();
   // Auth Process
   on_event("PASSWORD_LOGIN", handle_password_login);\
   on_event("FINGERPRINT_LOGIN", handle_fingerprint_login);

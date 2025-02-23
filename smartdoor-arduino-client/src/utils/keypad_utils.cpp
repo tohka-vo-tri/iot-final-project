@@ -1,8 +1,8 @@
-#include "keypad_utils.h"
-#include "serial_utils.h"
+#include "utils/keypad_utils.h"
+#include "events/event_producer.h"
 #include <Keypad.h>
 #include <Arduino.h>
-String keyboardEnter = "";
+#include <ArduinoJson.h>
 
 char keys[4][4] = {
   {'1', '2', '3', 'A'},
@@ -15,17 +15,19 @@ byte colPins[4] = {5, 4, 3, 2};
 byte rowPins[4] = {9, 8, 7, 6};
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, 4, 4);
+String wrap_send_data (String data, String key);
+String keyboardEnter = "";
 
 void handle_keypad_input() {
   char key = keypad.getKey();
   if (key) {
     Serial.print("Key pressed: ");
     Serial.println(key);
-    send_data(keyboardEnter, "password_input");
+    trigger_event(EventType::PASSWORD_INPUT, wrap_send_data(keyboardEnter,"password_input"));
     if (key == '#') {
       Serial.print("You entered: ");
       Serial.println(keyboardEnter);
-      send_data(keyboardEnter, "password_check");
+      trigger_event(EventType::PASSWORD_LOGIN, wrap_send_data(keyboardEnter, "password"));
       keyboardEnter = "";
     } else if (key == '*') {
       keyboardEnter = "";
@@ -33,4 +35,12 @@ void handle_keypad_input() {
       keyboardEnter += key;
     }
   }
+}
+
+String wrap_send_data (String data, String key) {
+  JsonDocument doc;
+  doc[key] = data;
+  String jsonString;
+  serializeJson(doc, jsonString);
+  return jsonString;
 }
