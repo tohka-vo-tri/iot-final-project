@@ -5,8 +5,7 @@ WORKDIR /installer
 RUN mkdir -p /installer
 
 COPY package.json yarn.lock ./ 
-RUN corepack enable && corepack prepare yarn@4.6.0 --activate
-RUN yarn install --immutable
+RUN yarn install --frozen-lockfile --production
 COPY . .
 ARG API_BASE_URL
 ENV NEXT_PUBLIC_API_BASE_URL=$API_BASE_URL
