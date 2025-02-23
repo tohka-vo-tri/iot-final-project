@@ -32,6 +32,7 @@ jobs:
 
   deploy-application:
     runs-on: self-hosted
+    needs: build-image
     env:
       REGISTRY_USERNAME: ghcr.io/${{ github.repository }}
       DB_USERNAME: ${{secrets.DB_USERNAME}}
