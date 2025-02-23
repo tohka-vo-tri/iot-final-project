@@ -1,15 +1,11 @@
-import express from 'express';
 import AuthRouter from '@/routes/auth.routes';
-import HistoryRouter from '@/routes/history.routes';
 import DeviceRouter from '@/routes/device.routes';
+import HistoryRouter from '@/routes/logs.routes';
+import express from 'express';
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.send('This is the API root!');
-});
-
 router.use('/auth', AuthRouter);
-router.use('/history', HistoryRouter);
-router.use('/device', DeviceRouter);
+router.use('/logs', HistoryRouter);
+router.use('/devices', DeviceRouter);
 
 export default router;

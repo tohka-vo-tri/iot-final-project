@@ -1,14 +1,19 @@
-import { Request, Response } from 'express'; 
+import { AuthenticatedRequest } from '@/middlewares/auth.middleware';
+import { Device } from '@/models/DeviceModel';
 import { User } from '@/models/UserModel';
+import { Request, Response } from 'express';
 
-// Thêm fingerprint
+type TDeviceRequestBody = {
+  name: string;
+}
+
 export const addFingerprint = async (req: Request, res: Response): Promise<void> => {
-  const { email, fingerprint } = req.body;
+  const { email, fingerprint, deviceId } = req.body;
 
   try {
-    const userExists = await User.findOne({ email });
-    if (!userExists) {
-      res.status(404).json({ message: 'User does not exist' });
+    const deviceExists = await Device.findById(deviceId);
+    if (!deviceExists) {
+      res.status(404).json({ message: 'Device does not exist' });
       return;
     }
 
@@ -24,14 +29,13 @@ export const addFingerprint = async (req: Request, res: Response): Promise<void>
   }
 };
 
-// Thêm RFID
 export const addRfid = async (req: Request, res: Response): Promise<void> => {
-  const { email, rfid } = req.body;
+  const { email, rfid, deviceId } = req.body;
 
   try {
-    const userExists = await User.findOne({ email });
-    if (!userExists) {
-      res.status(404).json({ message: 'User does not exist' });
+    const deviceExists = await Device.findById(deviceId);
+    if (!deviceExists) {
+      res.status(404).json({ message: 'Device does not exist' });
       return;
     }
 
@@ -44,5 +48,50 @@ export const addRfid = async (req: Request, res: Response): Promise<void> => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const addNewDevice = async ( req: AuthenticatedRequest & { body: TDeviceRequestBody }, res: Response): Promise<void> => {
+  try {
+      if (!req.user) {
+          res.status(401).json({ message: 'Unauthorized' });
+          return;
+      }
+      const { name } = req.body;
+      if (!name) {
+          res.status(400).json({ message: 'Name is required' });
+          return;
+      }
+      const newDevice = await Device.create({
+          userId: req.user.userId,
+          name,
+      });
+
+      res.status(201).json(newDevice);
+  } catch (error) {
+      res.status(500).json({ message: 'Server Error', error });
+  }
+};
+
+export const getAllDevices = async (req: Request, res: Response): Promise<void> => {
+  try {
+      const devices = await Device.find();
+      res.status(200).json(devices.length ? devices : []);
+  } catch (error) {
+      res.status(500).json({ message: 'Server Error', error });
+  }
+};
+
+export const getDeviceDetail = async (req: Request, res: Response): Promise<void> => {
+  const { deviceId } = req.params;
+  try {
+      const device = await Device.findById(deviceId);
+      if (!device) {
+          res.status(404).json({ message: 'Device not found' });
+          return;
+      }
+      res.status(200).json(device);
+  } catch (error) {
+      res.status(500).json({ message: 'Server Error', error });
   }
 };
