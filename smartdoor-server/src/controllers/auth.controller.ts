@@ -1,10 +1,9 @@
-import { User } from "@/models/UserModel";
+import { User } from '@/models/UserModel';
 import { Request, Response } from 'express'; 
 import { generateToken } from "@/utils/jwt.utils";
 
-module.exports.login = async (req: Request, res: Response)=>{
+export const login = async (req: Request, res: Response): Promise<void>=>{
   const { email, password } = req.body;
-
   try {
     const user = await User.findOne({ email });
     if (!user) {
@@ -23,7 +22,7 @@ module.exports.login = async (req: Request, res: Response)=>{
   }
 };
 
-module.exports.register = async (req: Request,res: Response)=>{
+export const register = async (req: Request,res: Response): Promise<void>=>{
   const { name, email, password } = req.body;
   try {
     const userExists = await User.findOne({ email });
@@ -32,6 +31,15 @@ module.exports.register = async (req: Request,res: Response)=>{
     await newUser.save();
     const token = generateToken(newUser._id.toString());
     res.status(201).json({ token });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getallUsers = async (req: Request, res: Response): Promise<void>=>{
+  try {
+    const allUsers = await User.find();
+    res.status(200).json({ allUsers });
   } catch (err) {
     res.status(500).json({ message: 'Server error' });
   }

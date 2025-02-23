@@ -1,9 +1,9 @@
 import express from 'express';
 const router = express.Router();
-const historyController = require("@/controllers/history.controller")
+import { getall,getHistoryById,addHistory } from '@/controllers/history.controller';
 
-router.get('', historyController.getall);
-router.get('/:userId', historyController.getHistoryById);
-router.post('/add', historyController.addHistory);
+router.get('', getall);
+router.get('/:userId', getHistoryById);
+router.post('/add',addHistory);
 
 export default router;

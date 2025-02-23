@@ -1,16 +1,18 @@
-import { Router, Request, Response } from "express";
-import { History, User } from "@/models/UserModel";
+import { History } from "@/models/HistoryModel";
+import { User } from "@/models/UserModel";
+import { Request, Response } from "express";
 
-module.exports.getall = async(req: Request, res: Response)=>{
+export const getall = async (req: Request, res: Response): Promise<void> =>{
     try{
         const allHistory = await History.find();
         res.status(200).json({allHistory});
-    }catch (err) {
-        res.status(500).json({ message: 'Server error' });
+    }catch (error: unknown) {
+        console.error("Error fetching history:", error);
+        res.status(500).json({ message: error instanceof Error ? error.message : "Internal Server Error" });
     }
 };
 
-module.exports.getHistoryById = async (req: Request, res: Response) => { 
+export const getHistoryById = async (req: Request, res: Response): Promise<void>=> { 
     try {
         const userId = req.params.userId; 
 
@@ -30,7 +32,7 @@ module.exports.getHistoryById = async (req: Request, res: Response) => {
     }
 };
 
-module.exports.addHistory = async (req: Request, res: Response) => {
+export const addHistory = async (req: Request, res: Response): Promise<void> => {
     const { method, data } = req.body;
 
     try {
@@ -47,7 +49,7 @@ module.exports.addHistory = async (req: Request, res: Response) => {
                 searchField = 'RFID';
                 break;
             case 'fingerprint':
-                searchField = 'Fingerprint';
+                searchField = 'fingerprint';
                 break;
             default:
                 res.status(400).json({ message: 'Invalid method.  Must be Key, RFID, or Fingerprint.' });
