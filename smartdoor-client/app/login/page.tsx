@@ -25,7 +25,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post(`${baseUrl}/register`, formData);
+      const response = await axios.post(`${baseUrl}/auth/login`, formData);
       console.log("Login successful:", response.data);
       alert("Login successful!");
       const { token } = response.data; 
