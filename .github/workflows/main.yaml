@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       API_BASE_URL: ${{secrets.API_BASE_URL}}
-      REGISTRY_USERNAME: ghcr.io/${{github.actor}}
+      REGISTRY_USERNAME: ghcr.io/${{ github.repository }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
