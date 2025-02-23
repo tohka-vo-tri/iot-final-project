@@ -1,6 +1,14 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import axios from "axios";
+import Link from "next/link";
 import { useState } from "react";
+
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
@@ -23,7 +31,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8080/auth/login", formData);
+      const response = await axios.post(`${baseUrl}/register`, formData);
       console.log("Login successful:", response.data);
       alert("Login successful!");
       const { token } = response.data; 

@@ -1,25 +1,5 @@
 "use client"
 
-import { useEffect,useState } from "react"
-import { Fingerprint, Plus, Tag, Trash2, X } from 'lucide-react'
-import axios from "axios";
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,14 +9,34 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import axios from "axios";
+import { Fingerprint, Plus, Tag, Trash2 } from 'lucide-react';
+import { useEffect, useState } from "react";
 
 interface UserData {
   name: string
   rfid: string | null
   fingerprint: string | null
 }
-
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 export default function UserDetailPage() {
   const [userData, setUserData] = useState<UserData>({
     name: "John Doe",
@@ -88,7 +88,7 @@ export default function UserDetailPage() {
 
   const handleAddFingerprint = async () => {
     try {
-      const response = await axios.post("http://localhost:8080/user/add-fingerprint", {
+      const response = await axios.post(`${baseUrl}/user/add-fingerprint`, {
         fingerprint: newFingerprint,
       });
   
@@ -104,7 +104,7 @@ export default function UserDetailPage() {
   
   const handleDelete = async (type: "rfid" | "fingerprint") => {
     try {
-      const response = await axios.delete(`http://localhost:8080/user/delete-${type}`);
+      const response = await axios.delete(`${baseUrl}/user/delete-${type}`);
   
       if (response.status === 200) {
         setUserData((prev) => ({ ...prev, [type]: null }));
