@@ -18,6 +18,7 @@ const userSchema = new Schema<UserModel>({
   devices: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Device' }]
 });
 
+
 userSchema.methods.comparePassword = async function (candidatePassword: string) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
