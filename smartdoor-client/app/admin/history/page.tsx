@@ -33,6 +33,7 @@ type SortConfig = {
     direction: "asc" | "desc"
 }
 
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 export default function AccessLogsTable() {
     const [logs, setLogs] = useState<AccessLog[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -54,9 +55,9 @@ export default function AccessLogsTable() {
     const fetchLogs = async (userId?: string) => {
         try {
             setIsLoading(true)
-            const url = userId 
-                ? `http://localhost:8080/history/${userId}` 
-                : "http://localhost:8080/history"
+            const url = userId
+                ? `${baseUrl}/history/${userId}` 
+                : `${baseUrl}/history` 
             const response = await axios.get<{ allHistory: AccessLog[] }>(url)
             setLogs(response.data.allHistory ?? [])
             console.log("Fetched logs:", response.data.allHistory)
@@ -67,6 +68,7 @@ export default function AccessLogsTable() {
             setIsLoading(false)
         }
     }
+    
 
     const handleSearch = () => {
         fetchLogs(searchUserId) // Trigger fetch with current searchUserId

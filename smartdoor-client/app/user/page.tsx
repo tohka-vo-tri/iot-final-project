@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 interface Device {
   id: string
   name: string
@@ -85,7 +85,7 @@ export default function UserDetailPage() {
 
   const fetchUserData = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/auth/user", {
+      const response = await axios.get(`${baseUrl}/auth/user`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -102,7 +102,7 @@ export default function UserDetailPage() {
   const handleCreateDevice = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:8080/devices/init-device",
+        `${baseUrl}/devices/init-device`,
         { name: newDeviceName },
         {
           headers: {
@@ -132,7 +132,7 @@ export default function UserDetailPage() {
 
     try {
       const response = await axios.post(
-        `http://localhost:8080/devices/${selectedDevice.id}/rfid`,
+        `${baseUrl}/devices/${selectedDevice.id}/rfid`,
         { rfid: newRFID },
         {
           headers: {
@@ -163,7 +163,7 @@ export default function UserDetailPage() {
 
     try {
       const response = await axios.post(
-        `http://localhost:8080/devices/${selectedDevice.id}/fingerprint`,
+        `${baseUrl}/devices/${selectedDevice.id}/fingerprint`,
         { fingerprint: newFingerprint },
         {
           headers: {
@@ -191,7 +191,7 @@ export default function UserDetailPage() {
 
   const handleDelete = async (deviceId: string, type: "rfid" | "fingerprint") => {
     try {
-      await axios.delete(`http://localhost:8080/devices/${deviceId}/${type}`, {
+      await axios.delete(`${baseUrl}/devices/${deviceId}/${type}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
