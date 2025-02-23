@@ -29,7 +29,7 @@ export default function RegisterPage() {
       return;
     }
     try {
-      const response = await axios.post(`${baseUrl}/register`, {
+      const response = await axios.post(`${baseUrl}/auth/register`, {
         name: formData.name,
         email: formData.email,
         password: formData.password,
