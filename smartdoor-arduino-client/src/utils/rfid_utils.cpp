@@ -1,4 +1,7 @@
 #include "utils/rfid_utils.h"
+#include "events/input_mode.h"
+#include "events/event_producer.h"
+#include <ArduinoJson.h>
 #include <MFRC522.h>
 #include <SPI.h>
 #define RST_PIN A0
@@ -12,18 +15,28 @@ void setup_rfid() {
 }
 
 void handle_rfid() {
-  String uidString = "";
-  if (!mfrc522.PICC_IsNewCardPresent()) {
-      return;
-  }
-  if (!mfrc522.PICC_ReadCardSerial()) {
-      return;
-  }
-  Serial.print("UID tag: ");
-  for (byte i = 0; i < mfrc522.uid.size; i++) {
-    uidString += String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
-    uidString += String(mfrc522.uid.uidByte[i], HEX);
-  }
-  Serial.println(uidString);
-  mfrc522.PICC_HaltA();
+  if (currentMode != InputMode::RFID) return;
+
+    String uidString = "";
+    if (!mfrc522.PICC_IsNewCardPresent()) {
+        return;
+    }
+    if (!mfrc522.PICC_ReadCardSerial()) {
+        return;
+    }
+
+    Serial.print("UID tag: ");
+    for (byte i = 0; i < mfrc522.uid.size; i++) {
+        uidString += String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
+        uidString += String(mfrc522.uid.uidByte[i], HEX);
+    }
+    Serial.println(uidString);
+    JsonDocument doc;
+    doc["rfid"] = uidString;
+    String jsonString;
+    serializeJson(doc, jsonString);
+
+    trigger_event(EventType::RFID_MODE_DISPLAY, jsonString);
+
+    mfrc522.PICC_HaltA();
 }

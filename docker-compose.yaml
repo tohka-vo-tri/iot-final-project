@@ -10,6 +10,7 @@ services:
       - smartdoor-networks
 
   smartdoor-mongo-express:
+    container_name: smartdoor-mongodb-express
     image: mongo-express
     restart: always
     depends_on:
