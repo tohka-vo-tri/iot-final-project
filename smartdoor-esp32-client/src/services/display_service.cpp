@@ -15,3 +15,18 @@ void handle_password_input_display (const String& payloads) {
         Serial.println("Skip");
     }
 }
+
+void handle_password_display(const String& payloads) {
+    clear_display();
+    print_to_lcd(0,"Enter Password");
+}
+
+void handle_rfid_display(const String& payloads) {
+    clear_display();
+    print_to_lcd(0, "Put your rfid");
+}
+
+void handle_fingerprint_display(const String& payloads) {
+    clear_display();
+    print_to_lcd(0, "Put your finger");
+}

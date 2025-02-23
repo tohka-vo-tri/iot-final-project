@@ -58,3 +58,7 @@ void print_to_lcd(byte row, String message) {
   lcd.setCursor(0, row);
   lcd.print(message);
 }
+
+void clear_display() {
+  lcd.clear();
+}
