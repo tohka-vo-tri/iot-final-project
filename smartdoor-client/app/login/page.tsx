@@ -6,16 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-import axios from "axios";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
