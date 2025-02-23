@@ -31,9 +31,10 @@ export const register = async (req: Request,res: Response): Promise<void>=>{
     await newUser.save();
     const token = generateToken(newUser._id.toString());
     res.status(201).json({ token });
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
+  } catch (error: unknown) {
+    console.error("Error fetching history:", error);
+    res.status(500).json({ message: error instanceof Error ? error.message : "Internal Server Error" });
+}
 };
 
 export const getallUsers = async (req: Request, res: Response): Promise<void>=>{

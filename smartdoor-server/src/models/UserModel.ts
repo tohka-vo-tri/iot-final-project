@@ -6,7 +6,7 @@ interface UserModel extends Document<mongoose.Types.ObjectId> {
   email: string;
   password: string;
   rfid: string;
-  fingerprint: number;
+  fingerprintId: number;
   createAt: Date;
   dateCreateRfid?:Date;
   dateCreateFingerprint?:Date;
@@ -18,12 +18,13 @@ const userSchema = new Schema<UserModel>({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  rfid: { type: String, unique: true, sparse: true },
-  fingerprint: {type: Number,unique: true, spare: true},
-  createAt: {type: Date, default: Date.now},
-  dateCreateRfid: {type: Date, default: Date.now},
-  dateCreateFingerprint: {type: Date, default: Date.now},
+  rfid: { type: String, unique: true, sparse: true }, // Thêm sparse: true
+  fingerprintId: { type: Number, unique: true, sparse: true }, // Thêm sparse: true
+  createAt: { type: Date, default: Date.now },
+  dateCreateRfid: { type: Date, default: null },
+  dateCreateFingerprint: { type: Date, default: null },
 });
+
 
 userSchema.methods.comparePassword = async function (candidatePassword: string) {
   return await bcrypt.compare(candidatePassword, this.password);

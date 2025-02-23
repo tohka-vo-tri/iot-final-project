@@ -49,7 +49,7 @@ export const addHistory = async (req: Request, res: Response): Promise<void> => 
                 searchField = 'RFID';
                 break;
             case 'fingerprint':
-                searchField = 'fingerprint';
+                searchField = 'fingerprintId';
                 break;
             default:
                 res.status(400).json({ message: 'Invalid method.  Must be Key, RFID, or Fingerprint.' });
