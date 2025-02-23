@@ -6,7 +6,6 @@ interface UserModel extends Document<mongoose.Types.ObjectId> {
   email: string;
   password: string;
   createAt: Date;
-  devices: mongoose.Types.ObjectId[];
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
 
@@ -15,7 +14,6 @@ const userSchema = new Schema<UserModel>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   createAt: { type: Date, default: Date.now },
-  devices: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Device' }]
 });
 
 

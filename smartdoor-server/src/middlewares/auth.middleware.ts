@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 export type TUserPayload = {
     userId: string;
     email: string;
+    name: string;
 };
 
 export interface AuthenticatedRequest extends Request {
@@ -25,6 +26,7 @@ export const authMiddleware = async(
     }
     try {
         const decoded = jwt.verify(token, SECRET_KEY) as {userId: string};
+        console.log('bip cmnr 2',decoded);
         const user = await User.findById(decoded.userId);
         if (!user) {
             res.status(401).json({message: 'User not found'});
@@ -32,7 +34,8 @@ export const authMiddleware = async(
         } 
         req.user = {
             userId: decoded.userId,
-            email: user.email
+            email: user.email,
+            name: user.name
         };
         next();
     } catch (error) {

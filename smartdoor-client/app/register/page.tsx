@@ -26,9 +26,8 @@ export default function RegisterPage() {
       setIsLoading(false);
       return;
     }
-
     try {
-      const response = await axios.post("http://localhost:8080/register", {
+      const response = await axios.post("http://localhost:8080/auth/register", {
         name: formData.name,
         email: formData.email,
         password: formData.password,

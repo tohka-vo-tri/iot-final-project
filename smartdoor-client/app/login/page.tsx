@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
 
+  const router = useRouter();
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -21,10 +23,16 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:8080/login", formData);
+      const response = await axios.post("http://localhost:8080/auth/login", formData);
       console.log("Login successful:", response.data);
       alert("Login successful!");
-      // Handle token storage or navigation after login
+      const { token } = response.data; 
+
+      localStorage.setItem("token", token);
+
+      // Redirect to /user page
+      router.push("/user");
+
     } catch (error) {
       console.error("Login failed:", error);
       alert("Invalid email or password. Please try again.");

@@ -43,13 +43,15 @@ export default function UserDetailPage() {
     rfid: null,
     fingerprint: null,
   })
+  const tokenUser = localStorage.getItem("token");
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/user");
+        const response = await axios.get("http://localhost:8080/auth/user",{ params: { token: tokenUser }});
         setUserData(response.data);
       } catch (err) {
         setError("Failed to fetch user data.");
