@@ -1,9 +1,20 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import axios from "axios"
 import { Fingerprint, Plus, Tag, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
 
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -16,17 +27,6 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 interface Device {
   id: string
@@ -60,17 +60,26 @@ export default function UserDetailPage() {
     isOpen: false,
     type: null,
   })
+  const [token, setToken] = useState<string | null>(null)
 
   // Form states
   const [newDeviceName, setNewDeviceName] = useState("")
   const [newRFID, setNewRFID] = useState("")
   const [newFingerprint, setNewFingerprint] = useState("")
 
-  const token = localStorage.getItem("token")
+  
 
   useEffect(() => {
-    fetchUserData()
-  }, [])
+    if (typeof window !== "undefined") {
+      const storedToken = localStorage.getItem("token")
+      setToken(storedToken)
+    }
+    
+  }, []);
+
+  useEffect(() => {
+    fetchUserData();
+  })
 
   const fetchUserData = async () => {
     try {
