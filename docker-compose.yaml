@@ -13,7 +13,7 @@ services:
     image: mongo-express
     restart: always
     depends_on:
-      - mongo  
+      - smartdoor-mongodb  
     ports:
       - 8081:8081
     environment:
@@ -29,6 +29,8 @@ services:
   smartdoor-server:
     container_name: smartdoor-server
     image: ${REGISTRY_USERNAME}/smartdoor-server:latest
+    depends_on:
+      - smartdoor-mongodb 
     restart: always
     ports:
       - 10000:10000
