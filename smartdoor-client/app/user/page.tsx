@@ -1,7 +1,7 @@
 "use client"
 
 import axios from "axios"
-import { Fingerprint, Plus, Tag, Trash2 } from "lucide-react"
+import { Fingerprint, Lock, Plus, Tag, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -28,11 +28,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 interface Device {
-  id: string
-  name: string
-  rfid?: string
-  fingerprint?: string
+  id: string;
+  name: string;
+  rfid?: string;
+  fingerprint?: string;
+  password?: string; // Add Password Property
 }
 
 interface UserData {
@@ -50,11 +52,13 @@ export default function UserDetailPage() {
 
   // Dialog states
   const [isNewDeviceDialogOpen, setIsNewDeviceDialogOpen] = useState(false)
+  const [isDeviceDetailsDialogOpen, setIsDeviceDetailsDialogOpen] = useState(false); // New Dialog
   const [isRFIDDialogOpen, setIsRFIDDialogOpen] = useState(false)
   const [isFingerprintDialogOpen, setIsFingerprintDialogOpen] = useState(false)
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false) //Password Dialog
   const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean
-    type: "rfid" | "fingerprint" | null
+    type: "rfid" | "fingerprint" | "password" | null  //Password
     deviceId?: string
   }>({
     isOpen: false,
@@ -66,6 +70,7 @@ export default function UserDetailPage() {
   const [newDeviceName, setNewDeviceName] = useState("")
   const [newRFID, setNewRFID] = useState("")
   const [newFingerprint, setNewFingerprint] = useState("")
+  const [newPassword, setNewPassword] = useState("") //Password
 
   
 
@@ -153,6 +158,7 @@ export default function UserDetailPage() {
 
       setNewRFID("")
       setIsRFIDDialogOpen(false)
+       setIsDeviceDetailsDialogOpen(true); // Re-open the device details dialog after the update.
     } catch (error) {
       console.error("Failed to add RFID:", error)
     }
@@ -184,12 +190,46 @@ export default function UserDetailPage() {
 
       setNewFingerprint("")
       setIsFingerprintDialogOpen(false)
+       setIsDeviceDetailsDialogOpen(true); // Re-open the device details dialog after the update.
     } catch (error) {
       console.error("Failed to add fingerprint:", error)
     }
   }
 
-  const handleDelete = async (deviceId: string, type: "rfid" | "fingerprint") => {
+   //Password Function
+    const handleAddPassword = async () => {
+        if (!selectedDevice) return;
+
+        try {
+            const response = await axios.post(
+                `${baseUrl}/devices/${selectedDevice.id}/password`, // Replace with your actual API endpoint
+                { password: newPassword },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            setUserData((prev) => {
+                if (!prev) return null;
+                return {
+                    ...prev,
+                    devices: prev.devices.map((device) =>
+                        device.id === selectedDevice.id ? { ...device, password: newPassword } : device
+                    ),
+                };
+            });
+
+            setNewPassword("");
+            setIsPasswordDialogOpen(false);
+            setIsDeviceDetailsDialogOpen(true); // Re-open the device details dialog after the update.
+        } catch (error) {
+            console.error("Failed to add password:", error);
+        }
+    };
+
+  const handleDelete = async (deviceId: string, type: "rfid" | "fingerprint" | "password") => { //Password
     try {
       await axios.delete(`${baseUrl}/devices/${deviceId}/${type}`, {
         headers: {
@@ -206,6 +246,7 @@ export default function UserDetailPage() {
       })
 
       setDeleteDialog({ isOpen: false, type: null })
+      setIsDeviceDetailsDialogOpen(true); // Re-open the device details dialog after the update.
     } catch (error) {
       console.error(`Failed to delete ${type}:`, error)
     }
@@ -242,85 +283,13 @@ export default function UserDetailPage() {
             <Accordion type="single" collapsible className="w-full">
               {userData.devices.map((device) => (
                 <AccordionItem key={device.id} value={device.id}>
-                  <AccordionTrigger>{device.name}</AccordionTrigger>
+                  <AccordionTrigger onClick={() => {
+                      setSelectedDevice(device);
+                      setIsDeviceDetailsDialogOpen(true);
+                  }}>
+                    {device.name}
+                  </AccordionTrigger>
                   <AccordionContent className="space-y-4">
-                    {/* RFID */}
-                    <div className="space-y-2">
-                      <Label>RFID Card</Label>
-                      <div className="flex items-center gap-2">
-                        {device.rfid ? (
-                          <div className="flex-1 flex items-center gap-2 p-2 bg-muted rounded-md">
-                            <Tag className="h-4 w-4" />
-                            <span className="flex-1">{device.rfid}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive"
-                              onClick={() =>
-                                setDeleteDialog({
-                                  isOpen: true,
-                                  type: "rfid",
-                                  deviceId: device.id,
-                                })
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => {
-                              setSelectedDevice(device)
-                              setIsRFIDDialogOpen(true)
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add RFID Card
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Fingerprint */}
-                    <div className="space-y-2">
-                      <Label>Fingerprint</Label>
-                      <div className="flex items-center gap-2">
-                        {device.fingerprint ? (
-                          <div className="flex-1 flex items-center gap-2 p-2 bg-muted rounded-md">
-                            <Fingerprint className="h-4 w-4" />
-                            <span className="flex-1">{device.fingerprint}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-destructive"
-                              onClick={() =>
-                                setDeleteDialog({
-                                  isOpen: true,
-                                  type: "fingerprint",
-                                  deviceId: device.id,
-                                })
-                              }
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            className="flex-1"
-                            onClick={() => {
-                              setSelectedDevice(device)
-                              setIsFingerprintDialogOpen(true)
-                            }}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Fingerprint
-                          </Button>
-                        )}
-                      </div>
-                    </div>
                   </AccordionContent>
                 </AccordionItem>
               ))}
@@ -353,6 +322,140 @@ export default function UserDetailPage() {
             </Button>
             <Button onClick={handleCreateDevice} disabled={!newDeviceName}>
               Create Device
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Device Details Dialog */}
+      <Dialog open={isDeviceDetailsDialogOpen} onOpenChange={setIsDeviceDetailsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedDevice?.name || "Device Details"}</DialogTitle>
+            <DialogDescription>Manage RFID, Fingerprint, and Password for this device.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+
+            {/* RFID Management */}
+            <div className="space-y-2">
+              <Label>RFID Card</Label>
+              <div className="flex items-center gap-2">
+                {selectedDevice?.rfid ? (
+                  <div className="flex-1 flex items-center gap-2 p-2 bg-muted rounded-md">
+                    <Tag className="h-4 w-4" />
+                    <span className="flex-1">{selectedDevice.rfid}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() =>
+                        setDeleteDialog({
+                          isOpen: true,
+                          type: "rfid",
+                          deviceId: selectedDevice.id,
+                        })
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setIsDeviceDetailsDialogOpen(false);
+                      setIsRFIDDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add RFID Card
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Fingerprint Management */}
+            <div className="space-y-2">
+              <Label>Fingerprint</Label>
+              <div className="flex items-center gap-2">
+                {selectedDevice?.fingerprint ? (
+                  <div className="flex-1 flex items-center gap-2 p-2 bg-muted rounded-md">
+                    <Fingerprint className="h-4 w-4" />
+                    <span className="flex-1">{selectedDevice.fingerprint}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() =>
+                        setDeleteDialog({
+                          isOpen: true,
+                          type: "fingerprint",
+                          deviceId: selectedDevice.id,
+                        })
+                      }
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setIsDeviceDetailsDialogOpen(false);
+                      setIsFingerprintDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Fingerprint
+                  </Button>
+                )}
+              </div>
+            </div>
+
+               {/* Password Management */}
+               <div className="space-y-2">
+                    <Label>Password</Label>
+                    <div className="flex items-center gap-2">
+                        {selectedDevice?.password ? (
+                            <div className="flex-1 flex items-center gap-2 p-2 bg-muted rounded-md">
+                                <Lock className="h-4 w-4" />
+                                <span className="flex-1">{selectedDevice.password}</span>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive"
+                                    onClick={() =>
+                                        setDeleteDialog({
+                                            isOpen: true,
+                                            type: "password",
+                                            deviceId: selectedDevice.id,
+                                        })
+                                    }
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        ) : (
+                            <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => {
+                                    setIsDeviceDetailsDialogOpen(false);
+                                    setIsPasswordDialogOpen(true);
+                                }}
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Password
+                            </Button>
+                        )}
+                    </div>
+                </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeviceDetailsDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -416,13 +519,43 @@ export default function UserDetailPage() {
         </DialogContent>
       </Dialog>
 
+         {/* Password Dialog */}
+         <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add Password</DialogTitle>
+                        <DialogDescription>Enter a password for the device.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                placeholder="Enter password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button onClick={handleAddPassword} disabled={!newPassword}>
+                            Add Password
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialog.isOpen} onOpenChange={(isOpen) => setDeleteDialog({ isOpen, type: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete the {deleteDialog.type === "rfid" ? "RFID card" : "fingerprint"}
+              This will permanently delete the {deleteDialog.type === "rfid" ? "RFID card" : deleteDialog.type === "fingerprint" ? "fingerprint" : "password"}
               from your device.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -442,4 +575,3 @@ export default function UserDetailPage() {
     </div>
   )
 }
-

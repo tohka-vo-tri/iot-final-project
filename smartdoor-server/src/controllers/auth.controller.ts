@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AuthenticatedRequest } from '@/middlewares/auth.middleware';
 import { Request, Response } from 'express';
+import { Log } from '@/models/LogModel';
 
 export const login = async (req: Request, res: Response): Promise<void>=>{
   const { email, password } = req.body;
@@ -87,11 +88,16 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
       }
     }
 
+    console.log('devicesadsdasdsa',rfid,fingerprint,password);
     if (!isAuthenticated) {
       res.status(401).json({ message: 'Authentication failed' });
       return;
     }
-
+    await Log.create({
+      deviceId: device._id,
+      action: 'open', // Assuming successful auth means "open" action; adjust as needed
+      timeStamp: new Date(),
+    });
     res.status(200).json({ message: 'Authentication successful' });
   } catch (error) {
     console.error(error);
