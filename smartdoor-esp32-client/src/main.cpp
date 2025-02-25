@@ -24,6 +24,8 @@ void setup()
   on_event("RFID_MODE_DISPLAY", handle_rfid_display);
   on_event("PASSWORD_MODE_DISPLAY", handle_password_display);
   on_event("FINGERPRINT_MODE_DISPLAY", handle_fingerprint_display);
+  print_to_lcd(0, "Welcome, User");
+  print_to_lcd(1, "Please Choice");
 }
 
 void loop()
