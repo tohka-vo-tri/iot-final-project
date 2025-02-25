@@ -7,7 +7,16 @@
 
 const String API_URL = BASE_API_URL;
 const String IOT_DEVICE_ID = DEVICE_ID;
-void handle_api_request(const String& endpoint, const JsonDocument& payload) {
+
+using APIEventCallback = std::function<void(const bool&)>;
+
+JsonDocument& getJsonDocument() {
+    static JsonDocument jsonDoc;
+    jsonDoc.clear();
+    return jsonDoc;
+}
+
+String handle_api_request(const String& endpoint, const JsonDocument& payload) {
     Serial.println("Calling API for endpoint: " + endpoint);
 
     String url = API_URL + endpoint;
@@ -17,10 +26,37 @@ void handle_api_request(const String& endpoint, const JsonDocument& payload) {
 
     String response = call_api(url, HttpMethod::POST, jsonData);
     Serial.println("API Response: " + response);
+    return response;
 }
+
+void handle_api_response(const String& responsePayload, APIEventCallback onSuccessCallback) {
+    DynamicJsonDocument responseDoc(256);
+    DeserializationError error = deserializeJson(responseDoc, responsePayload);
+
+    if (error) {
+        Serial.println("Failed to parse API response: " + String(error.c_str()));
+        return;
+    }
+    String message = responseDoc["message"] | "";
+    message.trim();
+    if (message == "Authentication successful") {
+        Serial.println("Login successful, spinning the servo...");
+        if (onSuccessCallback) {
+            onSuccessCallback(true);
+        }
+    } else {
+        Serial.println("Authentication failed or server error.");
+        if (onSuccessCallback) {
+            onSuccessCallback(false);
+        }
+    }
+    responseDoc.clear();
+}
+
 
 void build_auth_payload(JsonDocument& payload, const String& method, const String& data) {
     payload["deviceId"] = IOT_DEVICE_ID;
+
     if (method == "password") {
         payload["password"] = data;
     } else if (method == "rfid") {
@@ -29,10 +65,11 @@ void build_auth_payload(JsonDocument& payload, const String& method, const Strin
         payload["fingerprint"] = data;
     }
 }
+
 void handle_password_login(const String& payload) {
     Serial.println("Authenticating with password...");
 
-    JsonDocument jsonDoc;
+    JsonDocument& jsonDoc = getJsonDocument();
     DeserializationError error = deserializeJson(jsonDoc, payload);
 
     if (error) {
@@ -42,16 +79,35 @@ void handle_password_login(const String& payload) {
 
     String password = jsonDoc["password"] | "";
     password.trim();
-
-    if (password.length() > 0) {
-        JsonDocument requestDoc;
-        build_auth_payload(requestDoc, "password", password);
-        handle_api_request("/auth/device", requestDoc);
-    }}
+    if (!password.isEmpty()) {
+        jsonDoc.clear();
+        clear_display();
+        print_to_lcd(0, "Please Wait...");
+        build_auth_payload(jsonDoc, "password", password);
+        String request = handle_api_request("/auth/device", jsonDoc);
+        handle_api_response(request, [](const bool& status) {
+            if (status) {
+                clear_display();
+                print_to_lcd(0, "Login Success");
+                spin_servo_on_success();
+                
+            }else {
+                print_to_lcd(0, "Login Failed");
+                delay(1000);
+            }
+            clear_display();
+            print_to_lcd(0, "Welcome, User");
+            print_to_lcd(1, "Please Choice");
+        });
+    } else {
+        Serial.println("Password field is empty");
+    }
+}
 
 void handle_rfid_login(const String& payload) {
     Serial.println("Authenticating with RFID...");
-    JsonDocument jsonDoc;
+
+    JsonDocument& jsonDoc = getJsonDocument();
     DeserializationError error = deserializeJson(jsonDoc, payload);
 
     if (error) {
@@ -62,18 +118,33 @@ void handle_rfid_login(const String& payload) {
     String rfid = jsonDoc["rfid"] | "";
     rfid.trim();
 
-    if (rfid.length() > 0) {
-        JsonDocument requestDoc;
-        build_auth_payload(requestDoc, "rfid", rfid);
-        handle_api_request("/login", requestDoc);
+    if (!rfid.isEmpty()) {
+        jsonDoc.clear();
+        clear_display();
+        print_to_lcd(0, "Please Wait...");
+        build_auth_payload(jsonDoc, "rfid", rfid);
+        String response = handle_api_request("/auth/device", jsonDoc);
+        handle_api_response(response, [](const bool& status) {
+            if (status) {
+                print_to_lcd(0, "Login Success");
+                spin_servo_on_success();
+            }else {
+                print_to_lcd(0, "Login Failed");
+                delay(1000);
+            }
+            clear_display();
+            print_to_lcd(0, "Welcome, User");
+            print_to_lcd(1, "Please Choice");
+        });
     } else {
         Serial.println("RFID field is empty");
     }
 }
+
 void handle_fingerprint_login(const String& payload) {
     Serial.println("Authenticating with fingerprint...");
 
-    JsonDocument jsonDoc;
+    JsonDocument& jsonDoc = getJsonDocument();
     DeserializationError error = deserializeJson(jsonDoc, payload);
 
     if (error) {
@@ -84,10 +155,24 @@ void handle_fingerprint_login(const String& payload) {
     String fingerprint = jsonDoc["fingerprint"] | "";
     fingerprint.trim();
 
-    if (fingerprint.length() > 0) {
-        DynamicJsonDocument requestDoc(256);
-        build_auth_payload(requestDoc, "fingerprint", fingerprint);
-        handle_api_request("/login", requestDoc);
+    if (!fingerprint.isEmpty()) {
+        jsonDoc.clear();
+        clear_display();
+        print_to_lcd(0, "Please Wait...");
+        build_auth_payload(jsonDoc, "fingerprint", fingerprint);
+        String response = handle_api_request("/auth/device", jsonDoc);
+        handle_api_response(response, [](const bool& status) {
+            if (status) {
+                print_to_lcd(0, "Login Success");
+                spin_servo_on_success();
+            }else {
+                print_to_lcd(0, "Login Failed");
+                delay(1000);
+            }
+            clear_display();
+            print_to_lcd(0, "Welcome, User");
+            print_to_lcd(1, "Please Choice");
+        });
     } else {
         Serial.println("Fingerprint field is empty");
     }

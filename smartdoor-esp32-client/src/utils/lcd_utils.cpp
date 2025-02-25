@@ -52,9 +52,9 @@ void print_to_lcd(byte row, String message) {
     return;
   }
   lcd.setCursor(0, row);
-  for (int i = 0; i < 16; i++) {
-    lcd.print(" ");
-  }
+  // for (int i = 0; i < 16; i++) {
+  //   lcd.print(" ");
+  // }
   lcd.setCursor(0, row);
   lcd.print(message);
 }

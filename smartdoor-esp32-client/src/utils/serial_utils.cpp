@@ -47,5 +47,7 @@ bool convert_payload_to_jsondoc(const String& payload, JsonDocument& doc)
         Serial.println("Payload is empty!");
     }
 
+    doc.clear();
+
     return false;
 }

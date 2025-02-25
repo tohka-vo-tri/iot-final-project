@@ -67,6 +67,8 @@ void handle_keypad_input() {
           }
       }else if (key == '#') {
         trigger_event(EventType::PASSWORD_LOGIN, wrap_send_data(keyboardEnter, "password"));
+        keyboardEnter = "";
+        currentMode = InputMode::NONE;
       } 
       else {
           keyboardEnter += key;

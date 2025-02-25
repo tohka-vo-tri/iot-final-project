@@ -36,7 +36,7 @@ void handle_rfid() {
     String jsonString;
     serializeJson(doc, jsonString);
 
-    trigger_event(EventType::RFID_MODE_DISPLAY, jsonString);
-
+    trigger_event(EventType::RFID_LOGIN, jsonString);
+    currentMode = InputMode::NONE;
     mfrc522.PICC_HaltA();
 }

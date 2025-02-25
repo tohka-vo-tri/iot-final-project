@@ -11,7 +11,6 @@ void setup() {
   Serial.begin(9600);
   setup_rfid();
   setup_software_serial();
-  trigger_event(EventType::PASSWORD_LOGIN, "");
 }
 
 void loop() {
