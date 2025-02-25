@@ -1,5 +1,5 @@
 import { AuthenticatedRequest } from '@/middlewares/auth.middleware';
-import { Device } from '@/models/DeviceModel';
+import { Device ,AuthData} from '@/models/DeviceModel';
 import { User } from '@/models/UserModel';
 import { Request, Response } from 'express';
 
@@ -8,19 +8,32 @@ type TDeviceRequestBody = {
 }
 
 export const addFingerprint = async (req: Request, res: Response): Promise<void> => {
-  const { email, fingerprint, deviceId } = req.body;
+  const { name, fingerprint, deviceId } = req.body;
 
   try {
-    const deviceExists = await Device.findById(deviceId);
-    if (!deviceExists) {
+    const device = await Device.findById(deviceId);
+    if (!device) {
       res.status(404).json({ message: 'Device does not exist' });
       return;
     }
-
-    await User.updateOne(
-      { email },
-      { $set: { fingerprint, dateCreateFingerprint: Date.now() } }
+    const rfidFingerprint = device.authData && device.authData.some(
+      (auth: AuthData) => auth.method === 'Fingerprint' && auth.data === fingerprint
     );
+    
+    if (rfidFingerprint) {
+      res.status(400).json({ message: 'Fingerprint already exists for this device' });
+      return;
+    }
+
+    const newAuthData: AuthData = {
+      method: 'Fingerprint',
+      data: fingerprint,
+      name :name, 
+      createdAt: new Date(),
+    };
+
+    device.authData.push(newAuthData);
+    await device.save();
 
     res.status(200).json({ message: 'Fingerprint added successfully' });
   } catch (err) {
@@ -30,19 +43,36 @@ export const addFingerprint = async (req: Request, res: Response): Promise<void>
 };
 
 export const addRfid = async (req: Request, res: Response): Promise<void> => {
-  const { email, rfid, deviceId } = req.body;
+  const { name, rfid, deviceId } = req.body;
 
   try {
-    const deviceExists = await Device.findById(deviceId);
-    if (!deviceExists) {
+    const device = await Device.findById(deviceId);
+    console.log("test here sdsdsadsadasdsad",deviceId,name,rfid);
+    if (!device) {
       res.status(404).json({ message: 'Device does not exist' });
       return;
     }
-
-    await User.updateOne(
-      { email },
-      { $set: { rfid, dateCreateRfid: Date.now() } }
+    console.log("test here device",device);
+    const rfidExists = device.authData && device.authData.some(
+      (auth: AuthData) => auth.method === 'RFID' && auth.data === rfid
     );
+    
+    
+    if (rfidExists) {
+      res.status(400).json({ message: 'RFID already exists for this device' });
+      return;
+    }
+
+    const newAuthData: AuthData = {
+      method: 'RFID',
+      data: rfid,
+      name :name, 
+      createdAt: new Date(),
+    };
+    
+    device.authData.push(newAuthData);
+
+    await device.save();
 
     res.status(200).json({ message: 'RFID added successfully' });
   } catch (err) {
@@ -50,7 +80,6 @@ export const addRfid = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 export const addNewDevice = async ( req: AuthenticatedRequest & { body: TDeviceRequestBody }, res: Response): Promise<void> => {
   try {
       if (!req.user) {
