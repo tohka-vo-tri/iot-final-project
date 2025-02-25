@@ -1,32 +1,5 @@
 "use client"
 
-import { useState,useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
-import {
-  ChevronLeft,
-  LayoutDashboard,
-  Smartphone,
-  History,
-  Menu,
-  ChevronDown,
-  ChevronRight,
-  Trash2,
-  Plus,
-} from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,25 +10,58 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import axios from "axios"
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  History,
+  LayoutDashboard,
+  Menu,
+  Plus,
+  Smartphone,
+  Trash2,
+} from "lucide-react"
+import { useEffect, useState } from "react"
+
 interface AuthData {
   method: string;
   data: string;
-  email: string;
-  createdAt: Date | string; // Có thể nhận string từ server và convert sang Date
-}
-
-interface Door {
-  id: string;
   name: string;
-  authData: AuthData[];
   createdAt: Date | string;
 }
 
+interface Door {
+  _id: string;
+  name: string;
+  authData: AuthData[];
+  createdAt: Date | string;
+  userId?: string;
+}
+
 interface HistoryLog {
+  _id: string;
+  roomId: string;
+  nameRoom: string;
   deviceId: string;
-  deviceName: string;
-  action: 'open' | 'update_password' | 'update_fingerprint' | 'update_rfid';
+  nameDevice: string;
+  nameUser: string;
+  action: 'open' | 'close' | 'sign_password';
   timeStamp: Date | string;
 }
 
@@ -71,17 +77,20 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ;
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const fetchData = async () => {
     setIsLoading(true)
     try {
       const [doorsResponse, historyResponse] = await Promise.all([
-        axios.get<Door[]>(`${baseUrl}/doors`),
-        axios.get<HistoryLog[]>(`${baseUrl}/history`)
+        axios.get<Door[]>(`${baseUrl}/devices/getall`),
+        axios.get<{ allHistory: HistoryLog[] }>(`${baseUrl}/logs/getall`)
       ])
       setDoors(doorsResponse.data)
-      setHistory(historyResponse.data)
+      const historyData = Array.isArray(historyResponse.data.allHistory) 
+      ? historyResponse.data.allHistory 
+      : [];
+    setHistory(historyData);
     } catch (err) {
       setError("Failed to fetch data")
       console.error(err)
@@ -112,7 +121,7 @@ export default function AdminDashboard() {
   const handleAddDevice = async (
     doorId: string,
     method: string,
-    email: string
+    name: string
   ) => {
     try {
       const response = await axios.post<AuthData>(`${baseUrl}/devices`, {
@@ -120,13 +129,13 @@ export default function AdminDashboard() {
         authData: {
           method,
           data: `${method}_${Date.now()}`,
-          email,
+          name,
           createdAt: new Date()
         }
       })
       
       setDoors(doors.map(door => 
-        door.id === doorId 
+        door._id === doorId 
           ? { ...door, authData: [...door.authData, response.data] }
           : door
       ))
@@ -139,7 +148,7 @@ export default function AdminDashboard() {
 
   const handleDeleteDevice = async (doorId: string, deviceIndex: number) => {
     try {
-      const door = doors.find(d => d.id === doorId)
+      const door = doors.find(d => d._id === doorId)
       if (!door) return
       const deviceToDelete = door.authData[deviceIndex]
       
@@ -151,7 +160,7 @@ export default function AdminDashboard() {
       })
       
       setDoors(doors.map(door => 
-        door.id === doorId 
+        door._id === doorId 
           ? { ...door, authData: door.authData.filter((_, i) => i !== deviceIndex) }
           : door
       ))
@@ -187,116 +196,29 @@ export default function AdminDashboard() {
           </div>
         )
 
-      case "devices":
-        return (
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Manage Devices</CardTitle>
-              <div className="space-x-2">
-                <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">Add Device</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Device</DialogTitle>
-                      <DialogDescription>Add a new authentication device to a door</DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={(e) => {
-                      e.preventDefault()
-                      const formData = new FormData(e.currentTarget)
-                      handleAddDevice(
-                        formData.get("door") as string,
-                        formData.get("method") as string,
-                        formData.get("email") as string
-                      )
-                    }}>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="door">Select Door</Label>
-                          <Select name="door">
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a door" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {doors.map((door) => (
-                                <SelectItem key={door.id} value={door.id}>
-                                  {door.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="method">Auth Method</Label>
-                          <Select name="method">
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select auth method" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="fingerprint">Fingerprint</SelectItem>
-                              <SelectItem value="rfid">RFID</SelectItem>
-                              <SelectItem value="password">Password</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input name="email" id="email" type="email" placeholder="user@example.com" />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                          {isLoading ? "Adding..." : "Add Device"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-
-                <Dialog open={isAddDoorOpen} onOpenChange={setIsAddDoorOpen}>
-                  <DialogTrigger asChild>
-                    <Button>Add Door</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Add New Door</DialogTitle>
-                      <DialogDescription>Add a new door to the system</DialogDescription>
-                    </DialogHeader>
-                    <form onSubmit={(e) => {
-                      e.preventDefault()
-                      const doorName = (e.currentTarget.elements.namedItem("doorName") as HTMLInputElement).value
-                      handleAddDoor(doorName)
-                    }}>
-                      <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="doorName">Door Name</Label>
-                          <Input id="doorName" name="doorName" placeholder="Enter door name" />
-                        </div>
-                        <Button type="submit" className="w-full" disabled={isLoading}>
-                          {isLoading ? "Adding..." : "Add Door"}
-                        </Button>
-                      </div>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[30px]"></TableHead>
-                    <TableHead>Door Name</TableHead>
-                    <TableHead>Auth Methods</TableHead>
-                    <TableHead>Created At</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {doors.map((door) => (
-                    <>
-                      <TableRow key={door.id}>
+        case "devices":
+          return (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle>Manage Devices</CardTitle>
+                {/* Giữ nguyên phần header */}
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[30px]"></TableHead>
+                      <TableHead>Door Name</TableHead>
+                      <TableHead>Auth Methods</TableHead>
+                      <TableHead>Created At</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {doors.flatMap((door) => [
+                      <TableRow key={`${door._id}-main`}>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => toggleDoorExpansion(door.id)}>
-                            {expandedDoors.includes(door.id) ? (
+                          <Button variant="ghost" size="icon" onClick={() => toggleDoorExpansion(door._id)}>
+                            {expandedDoors.includes(door._id) ? (
                               <ChevronDown className="h-4 w-4" />
                             ) : (
                               <ChevronRight className="h-4 w-4" />
@@ -307,7 +229,7 @@ export default function AdminDashboard() {
                         <TableCell>
                           <Button
                             variant="link"
-                            onClick={() => toggleDoorExpansion(door.id)}
+                            onClick={() => toggleDoorExpansion(door._id)}
                             className="p-0 h-auto font-normal"
                           >
                             Show more devices ({door.authData.length})
@@ -316,9 +238,9 @@ export default function AdminDashboard() {
                         <TableCell>
                           {new Date(door.createdAt).toLocaleDateString()}
                         </TableCell>
-                      </TableRow>
-                      {expandedDoors.includes(door.id) && (
-                        <TableRow className="bg-muted/50">
+                      </TableRow>,
+                      expandedDoors.includes(door._id) && (
+                        <TableRow key={`${door._id}-expanded`} className="bg-muted/50">
                           <TableCell colSpan={4}>
                             <div className="py-2 px-4">
                               <Table>
@@ -326,7 +248,7 @@ export default function AdminDashboard() {
                                   <TableRow>
                                     <TableHead>Auth Method</TableHead>
                                     <TableHead>Device ID</TableHead>
-                                    <TableHead>Email</TableHead>
+                                    <TableHead>Name</TableHead>
                                     <TableHead>Created At</TableHead>
                                     <TableHead></TableHead>
                                   </TableRow>
@@ -336,7 +258,7 @@ export default function AdminDashboard() {
                                     <TableRow key={index}>
                                       <TableCell className="capitalize">{auth.method}</TableCell>
                                       <TableCell>{auth.data}</TableCell>
-                                      <TableCell>{auth.email}</TableCell>
+                                      <TableCell>{auth.name}</TableCell>
                                       <TableCell>
                                         {new Date(auth.createdAt).toLocaleDateString()}
                                       </TableCell>
@@ -344,7 +266,7 @@ export default function AdminDashboard() {
                                         <Button
                                           variant="ghost"
                                           size="icon"
-                                          onClick={() => setDeleteDevice({ doorId: door.id, deviceIndex: index })}
+                                          onClick={() => setDeleteDevice({ doorId: door._id, deviceIndex: index })}
                                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                                         >
                                           <Trash2 className="h-4 w-4" />
@@ -372,9 +294,9 @@ export default function AdminDashboard() {
                                             e.preventDefault()
                                             const formData = new FormData(e.currentTarget)
                                             handleAddDevice(
-                                              door.id,
+                                              door._id,
                                               formData.get("method") as string,
-                                              formData.get("email") as string
+                                              formData.get("name") as string
                                             )
                                           }}>
                                             <div className="space-y-4 py-4">
@@ -392,8 +314,8 @@ export default function AdminDashboard() {
                                                 </Select>
                                               </div>
                                               <div className="space-y-2">
-                                                <Label htmlFor="email">Email</Label>
-                                                <Input name="email" id="email" type="email" placeholder="user@example.com" />
+                                                <Label htmlFor="name">Name</Label>
+                                                <Input name="name" id="name" placeholder="Enter user name" />
                                               </div>
                                               <Button type="submit" className="w-full" disabled={isLoading}>
                                                 {isLoading ? "Adding..." : "Add Device"}
@@ -409,49 +331,59 @@ export default function AdminDashboard() {
                             </div>
                           </TableCell>
                         </TableRow>
-                      )}
-                    </>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )
+                      )
+                    ])}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          );
 
-      case "history":
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading && <p>Loading...</p>}
-              {error && <p className="text-destructive">{error}</p>}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Device</TableHead>
-                    <TableHead>Action</TableHead>
-                    <TableHead>Timestamp</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {history.map((log, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{log.deviceName}</TableCell>
-                      <TableCell className="capitalize">{log.action}</TableCell>
-                      <TableCell>
-                        {new Date(log.timeStamp).toLocaleDateString()} {new Date(log.timeStamp).toLocaleTimeString()}
-                      </TableCell>
+        case "history":
+          return (
+            <Card>
+              <CardHeader>
+                <CardTitle>History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoading && <p>Loading...</p>}
+                {error && <p className="text-destructive">{error}</p>}
+                {!isLoading && !error && history.length === 0 && <p>No history records found.</p>}
+                {history.length > 0 && (
+                  <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Room ID</TableHead>
+                      <TableHead>Room Name</TableHead>
+                      <TableHead>Device ID</TableHead>
+                      <TableHead>Device Name</TableHead>
+                      <TableHead>User Name</TableHead>
+                      <TableHead>Action</TableHead>
+                      <TableHead>Timestamp</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        )
+                  </TableHeader>
+                  <TableBody>
+                    {history.map((log, index) => (
+                      <TableRow key={log._id}> 
+                        <TableCell>{log.roomId}</TableCell>
+                        <TableCell>{log.nameRoom}</TableCell>
+                        <TableCell>{log.deviceId}</TableCell>
+                        <TableCell>{log.nameDevice}</TableCell>
+                        <TableCell>{log.nameUser}</TableCell>
+                        <TableCell className="capitalize">{log.action}</TableCell>
+                        <TableCell>
+                            {new Date(log.timeStamp).toLocaleDateString()} {new Date(log.timeStamp).toLocaleTimeString()}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          )
+      }
     }
-  }
 
   return (
     <div className="flex h-screen">
