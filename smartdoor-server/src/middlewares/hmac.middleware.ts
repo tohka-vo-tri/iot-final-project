@@ -35,8 +35,6 @@ export const hmacMiddleware = async(
       res.status(403).json({ message: 'Invalid HMAC signature' });
       return;
     }
-
-    res.status(200).json({ message: 'Signature verified successfully' });
     if (clientSignature !== serverSignature) {
       res.status(403).json({ message: 'Invalid HMAC signature' });
     }

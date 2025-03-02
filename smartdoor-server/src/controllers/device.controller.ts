@@ -206,3 +206,24 @@ export const updateDevice = async (req: Request, res: Response): Promise<void> =
     });
   }
 };
+
+export const updateRoom = async (req: Request, res: Response): Promise<void> => {
+  const{roomId, name} = req.body;
+  try{
+    const room = await Device.findById(roomId);
+    if(!room){
+      res.status(404).json({message: "Room not found"});
+      return;
+    }
+    const result = await Device.updateOne({_id: roomId}, {name: name});
+    if(result.matchedCount === 0 || result.modifiedCount === 0){
+      res.status(404).json({message: "Room not found or no changes made"});
+      return;
+    }
+    res.status(200).json({message: "Room updated successfully"});
+  }catch(error){
+    res.status(500).json({message: "Server Error", error
+    });
+
+  }
+};
