@@ -1,4 +1,4 @@
-import swaggerDocument from '@/configs/swagger-output.json';
+import swaggerDocument from 'swagger-output.json';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
