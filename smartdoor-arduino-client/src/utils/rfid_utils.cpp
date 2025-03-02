@@ -30,13 +30,17 @@ void handle_rfid() {
         uidString += String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " ");
         uidString += String(mfrc522.uid.uidByte[i], HEX);
     }
+    mfrc522.PICC_HaltA();
     Serial.println(uidString);
     JsonDocument doc;
     doc["rfid"] = uidString;
     String jsonString;
     serializeJson(doc, jsonString);
-
-    trigger_event(EventType::RFID_LOGIN, jsonString);
+    if (isRegisterMode) {
+      trigger_event(EventType::RFID_REGISTER, jsonString);
+    }else {
+      trigger_event(EventType::RFID_LOGIN, jsonString);
+    }
+    
     currentMode = InputMode::NONE;
-    mfrc522.PICC_HaltA();
 }

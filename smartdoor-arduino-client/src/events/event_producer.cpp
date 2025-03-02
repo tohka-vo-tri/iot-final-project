@@ -29,6 +29,12 @@ void trigger_event(EventType eventType, const String &payload) {
         case FINGERPRINT_MODE_DISPLAY:
             eventMessage = "EVENT:FINGERPRINT_MODE_DISPLAY";
             break;
+        case RFID_REGISTER:
+            eventMessage = "EVENT:RFID_REGISTER";
+            break;
+        case FINGERPRINT_REGISTER:
+            eventMessage = "EVENT:FINGERPRINT_REGISTER";
+            break;
         default:
             eventMessage = "EVENT:UNKNOWN";
             break;

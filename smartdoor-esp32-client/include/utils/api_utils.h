@@ -4,13 +4,12 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-// Enum to represent HTTP methods
 enum HttpMethod {
   GET,
-  POST
+  POST,
+  PUT
 };
 
-// Function to call API with GET or POST method
 String call_api(String endpoint, HttpMethod method, String data = "");
 
 #endif

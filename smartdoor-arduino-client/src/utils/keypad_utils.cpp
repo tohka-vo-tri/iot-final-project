@@ -18,6 +18,7 @@ byte rowPins[4] = {9, 8, 7, 6};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, 4, 4);
 String wrap_send_data (String data, String key);
 String keyboardEnter = "";
+bool isRegisterMode = false;
 
 void handle_keypad_input() {
   char key = keypad.getKey();
@@ -27,16 +28,18 @@ void handle_keypad_input() {
       if (key == 'A') {
           currentMode = InputMode::PASSWORD;
           Serial.println("Switched to PASSWORD mode");
+          trigger_event(EventType::PASSWORD_MODE_DISPLAY, wrap_send_data(keyboardEnter, "password"));
           keyboardEnter = "";
       } 
       else if (key == 'B') {
           currentMode = InputMode::FINGERPRINT;
+          trigger_event(EventType::FINGERPRINT_MODE_DISPLAY, wrap_send_data(keyboardEnter, "fingerprint"));
           Serial.println("Switched to FINGERPRINT mode");
           keyboardEnter = "";
       } 
       else if (key == 'C') {
           currentMode = InputMode::RFID;
-          Serial.println("Switched to RFID mode");
+          trigger_event(EventType::RFID_MODE_DISPLAY, wrap_send_data(keyboardEnter, "rfid"));
           keyboardEnter = "";
       } 
       else if (key == 'D') {
@@ -44,13 +47,13 @@ void handle_keypad_input() {
           Serial.println(keyboardEnter);
           switch (currentMode) {
               case InputMode::PASSWORD:
-                  trigger_event(EventType::PASSWORD_MODE_DISPLAY, wrap_send_data(keyboardEnter, "password"));
+                  isRegisterMode = true;
                   break;
               case InputMode::FINGERPRINT:
-                  trigger_event(EventType::FINGERPRINT_MODE_DISPLAY, wrap_send_data(keyboardEnter, "fingerprint"));
+                  isRegisterMode = true;
                   break;
               case InputMode::RFID:
-                  trigger_event(EventType::RFID_MODE_DISPLAY, wrap_send_data(keyboardEnter, "rfid"));
+                  isRegisterMode = true;
                   break;
               default:
                   Serial.println("No valid mode selected!");

@@ -1,5 +1,7 @@
 #include "utils/api_utils.h"
+#include "utils/hmac_utils.h"
 #include <Arduino.h>
+
 String call_api(String endpoint, HttpMethod method, String data) {
   WiFiClientSecure client;
   client.setInsecure();
@@ -9,9 +11,11 @@ String call_api(String endpoint, HttpMethod method, String data) {
 
   Serial.println("Endpoint: " + endpoint);
   Serial.println("Request Data: " + data);
+  String hmacSignature = createHMAC(data);
 
   http.begin(client, endpoint);
   http.addHeader("Content-Type", "application/json");
+  http.addHeader("x-hmac-signature", hmacSignature);
 
   int httpResponseCode = -1;
 
@@ -20,6 +24,8 @@ String call_api(String endpoint, HttpMethod method, String data) {
   } 
   else if (method == HttpMethod::POST) {
     httpResponseCode = http.POST(data);
+  }else if (method == HttpMethod::PUT) {
+    httpResponseCode = http.PUT(data);
   }
 
   Serial.print("HTTP Response code: ");

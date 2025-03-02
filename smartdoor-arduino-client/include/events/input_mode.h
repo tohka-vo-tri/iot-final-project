@@ -8,5 +8,6 @@ enum class InputMode {
     RFID
 };
 extern InputMode currentMode;
+extern bool isRegisterMode;
 
 #endif
