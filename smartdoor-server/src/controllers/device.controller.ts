@@ -2,6 +2,7 @@ import { AuthenticatedRequest } from '@/middlewares/auth.middleware';
 import { Device ,AuthData} from '@/models/DeviceModel';
 import { User } from '@/models/UserModel';
 import { Request, Response } from 'express';
+const moment = require('moment-timezone');
 
 type TDeviceRequestBody = {
   name: string;
@@ -29,7 +30,8 @@ export const addFingerprint = async (req: Request, res: Response): Promise<void>
       method: 'Fingerprint',
       data: fingerprint,
       name :name, 
-      createdAt: new Date(),
+      status: false, 
+    createdAt: moment().tz('Asia/Ho_Chi_Minh').toDate(),
     };
 
     device.authData.push(newAuthData);
@@ -65,7 +67,8 @@ export const addRfid = async (req: Request, res: Response): Promise<void> => {
       method: 'RFID',
       data: rfid,
       name :name, 
-      createdAt: new Date(),
+      status: false, 
+    createdAt: moment().tz('Asia/Ho_Chi_Minh').toDate(),
     };
     
     device.authData.push(newAuthData);
@@ -174,7 +177,7 @@ export const deleteDevice = async (req: Request, res: Response): Promise<void> =
 };
 
 export const updateDevice = async (req: Request, res: Response): Promise<void> => {
-  const { nameUser, deviceId, roomId } = req.body;
+  const { nameUser, deviceId, roomId, status } = req.body;
 
   try {
     if (!nameUser || !deviceId || !roomId) {
@@ -188,8 +191,9 @@ export const updateDevice = async (req: Request, res: Response): Promise<void> =
       return;
     }
     const result = await Device.updateOne(
-      { _id: roomId, 'authData.data': deviceId }, // Điều kiện tìm room và device trong authData
-      { $set: { 'authData.$.name': nameUser } }   // Cập nhật name của phần tử khớp
+      { _id: roomId, 'authData.data': deviceId }, 
+      { $set: { 'authData.$.name': nameUser } } ,
+      { $set: { 'authData.$.status': status } }
     );
 
 
@@ -227,3 +231,5 @@ export const updateRoom = async (req: Request, res: Response): Promise<void> => 
 
   }
 };
+
+export const changesPassword = async (req: Request, res: Response): Promise<void> => {};

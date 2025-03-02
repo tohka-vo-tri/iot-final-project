@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import mongoose, { Document, Schema } from 'mongoose';
+const moment = require('moment-timezone');
 
 interface UserModel extends Document<mongoose.Types.ObjectId> {
   name: string;
@@ -13,7 +14,7 @@ const userSchema = new Schema<UserModel>({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  createAt: { type: Date, default: Date.now },
+  createAt: { type: Date, default: () => moment().tz('Asia/Ho_Chi_Minh').toDate() },
 });
 
 

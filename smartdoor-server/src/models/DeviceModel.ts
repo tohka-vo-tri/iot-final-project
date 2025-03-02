@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
+const moment = require('moment-timezone');
 
 export type AuthMethod = 'Password' | 'RFID' | 'Fingerprint';
 
@@ -7,6 +8,7 @@ export interface AuthData {
     method: AuthMethod;
     data: string;
     name: string;
+    status: boolean;
     createdAt: Date;
 }
 
@@ -21,14 +23,15 @@ const authDataSchema = new Schema<AuthData>({
     method: { type: String, enum: ['Password', 'RFID', 'Fingerprint'], required: true },
     data: { type: String, required: true },
     name: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
+    status: { type: Boolean, default: true },
+    createdAt: { type: Date, default: () => moment().tz('Asia/Ho_Chi_Minh').toDate() },
 });
 
 const deviceSchema = new Schema<DeviceModel>({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     name: { type: String, required: true },
     authData: [authDataSchema],
-    createdAt: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: () => moment().tz('Asia/Ho_Chi_Minh').toDate() },
 });
 
 deviceSchema.pre('save', async function (next) {

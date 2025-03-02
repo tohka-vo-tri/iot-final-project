@@ -86,7 +86,7 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
 
 
     if (rfid && !isAuthenticated) {
-      const rfidAuth = authData.find((auth: AuthData) => auth.method === 'RFID' && auth.data === rfid);
+      const rfidAuth = authData.find((auth: AuthData) => auth.method === 'RFID' && auth.data === rfid && auth.status === true);
       if (rfidAuth) {
         isAuthenticated = true;
         authenticatedMethod = 'RFID';
@@ -96,7 +96,7 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
 
 
     if (fingerprint && !isAuthenticated) {
-      const fingerprintAuth = authData.find((auth: AuthData) => auth.method === 'Fingerprint' && auth.data === fingerprint);
+      const fingerprintAuth = authData.find((auth: AuthData) => auth.method === 'Fingerprint' && auth.data === fingerprint && auth.status === true);
       if (fingerprintAuth) {
         isAuthenticated = true;
         authenticatedMethod = 'Fingerprint';

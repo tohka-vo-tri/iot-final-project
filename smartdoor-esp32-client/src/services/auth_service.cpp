@@ -4,7 +4,6 @@
 #include <ArduinoJson.h>
 #include "handlers/door_handler.h"
 #include <utils/lcd_utils.h>
-#include <regex>
 
 const String API_URL = BASE_API_URL;
 const String IOT_DEVICE_ID = DEVICE_ID;
@@ -63,29 +62,21 @@ void handle_api_response(const String &responsePayload, APIEventCallback onSucce
     responseDoc.clear();
 }
 
-void handle_register_response(const String &responsePayload, APIEventCallback onSuccessCallback)
-{
-    std::regex successPattern(".*added successfully.*");
+void handle_register_response(const String &responsePayload, APIEventCallback onSuccessCallback) {
     JsonDocument responseDoc;
     DeserializationError error = deserializeJson(responseDoc, responsePayload);
-    if (error)
-    {
+    if (error) {
         Serial.println("Failed to parse API response: " + String(error.c_str()));
         return;
     }
     String message = responseDoc["message"] | "";
     message.trim();
-    if (std::regex_search(responsePayload.c_str(), successPattern))
-    {
-        if (onSuccessCallback)
-        {
+    if (message.indexOf("added successfully") != -1) { 
+        if (onSuccessCallback) {
             onSuccessCallback(true);
         }
-    }
-    else
-    {
-        if (onSuccessCallback)
-        {
+    } else {
+        if (onSuccessCallback) {
             onSuccessCallback(false);
         }
     }

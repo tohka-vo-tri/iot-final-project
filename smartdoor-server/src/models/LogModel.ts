@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+const moment = require('moment-timezone');
 
 interface LogModel extends Document<mongoose.Types.ObjectId> {
   roomId: mongoose.Types.ObjectId;
@@ -17,7 +18,7 @@ const logSchema = new Schema<LogModel>({
   nameDevice: { type: String, required: true },
   nameUser: { type: String, required: true },
   action: { type: String, enum: ['open', 'update_password', 'update_fingerprint', 'update_rfid'], required: true },
-  timeStamp: { type: Date, default: Date.now }
+  timeStamp: { type: Date, default: () => moment().tz('Asia/Ho_Chi_Minh').toDate() }
 });
 
 export const Log = mongoose.model<LogModel>('Log', logSchema);
