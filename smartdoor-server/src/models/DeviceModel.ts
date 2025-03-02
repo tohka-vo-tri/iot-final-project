@@ -7,7 +7,7 @@ export type AuthMethod = 'Password' | 'RFID' | 'Fingerprint';
 export interface AuthData {
     method: AuthMethod;
     data: string;
-    name: string;
+    name?: string;
     status: boolean;
     createdAt: Date;
 }
@@ -22,7 +22,7 @@ export interface DeviceModel extends Document {
 const authDataSchema = new Schema<AuthData>({
     method: { type: String, enum: ['Password', 'RFID', 'Fingerprint'], required: true },
     data: { type: String, required: true },
-    name: { type: String, required: true },
+    name: { type: String, required: false },
     status: { type: Boolean, default: true },
     createdAt: { type: Date, default: () => moment().tz('Asia/Ho_Chi_Minh').toDate() },
 });

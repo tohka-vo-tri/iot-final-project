@@ -66,7 +66,7 @@ export const addRfid = async (req: Request, res: Response): Promise<void> => {
     const newAuthData: AuthData = {
       method: 'RFID',
       data: rfid,
-      name :'unknown', 
+      name : 'unknown', 
       status: false, 
     createdAt: moment().tz('Asia/Ho_Chi_Minh').toDate(),
     };
