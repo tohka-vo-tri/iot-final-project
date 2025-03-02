@@ -174,35 +174,35 @@ export const deleteDevice = async (req: Request, res: Response): Promise<void> =
 };
 
 export const updateDevice = async (req: Request, res: Response): Promise<void> => {
-  const {nameUser,deviceId, roomId} = req.body;
-  try{
-    // if(!nameUser || !deviceId || !roomId){
-    //   res.status(400).json({message : 'Name, Device ID and Room ID are required'});
-    //   return;
-    // }
-    const room = await Device.findById(roomId);
-    if(!room){
-      res.status(404).json({message : 'Room not found'});
-      return;
-    }
-    const deviceIndex = room.authData.findIndex(
-      (auth: AuthData) => auth.data === deviceId
-    );
-    if(deviceIndex === -1){
-      res.status(404).json({message : 'Device not found'});
-      return;
-    }
-    await Device
-      .updateOne(
-        { _id: roomId, 'authData.data': deviceId },
-        { $set: { 'authData.$.name': nameUser } }
-      );
+  const { nameUser, deviceId, roomId } = req.body;
 
-  }catch(error){
+  try {
+    if (!nameUser || !deviceId || !roomId) {
+      res.status(400).json({ message: 'Name, Device ID, and Room ID are required' });
+      return;
+    }
+
+    const room = await Device.findById(roomId);
+    if (!room) {
+      res.status(404).json({ message: 'Room not found' });
+      return;
+    }
+    const result = await Device.updateOne(
+      { _id: roomId, 'authData.data': deviceId }, // Điều kiện tìm room và device trong authData
+      { $set: { 'authData.$.name': nameUser } }   // Cập nhật name của phần tử khớp
+    );
+
+
+    if (result.matchedCount === 0 || result.modifiedCount === 0) {
+      res.status(404).json({ message: 'Device not found or no changes made' });
+      return;
+    }
+    res.status(200).json({ message: 'Device updated successfully' });
+  } catch (error) {
+    console.error('Error updating device:', { nameUser, deviceId, roomId, error });
     res.status(500).json({
-      message : 'Server Error',
-      error : error instanceof Error ? error.message : 'Unknown error'
+      message: 'Server Error',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
-
 };
