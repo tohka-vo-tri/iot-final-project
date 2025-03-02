@@ -110,13 +110,12 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
       return;
     }
 
-
     await Log.create({
-      roomId: device._id,           
-      nameRoom: device.name,        
-      deviceId: authenticatedAuthData?.data,         
-      nameDevice: authenticatedAuthData?.method,    
-      nameUser: authenticatedAuthData?.name || 'Unknown', 
+      roomId: device._id,
+      nameRoom: device.name,
+      deviceId: authenticatedAuthData!.data, 
+      nameDevice: authenticatedAuthData!.method,
+      nameUser: authenticatedAuthData!.name || 'Unknown',
       action: 'open',
       timeStamp: new Date(),
     });

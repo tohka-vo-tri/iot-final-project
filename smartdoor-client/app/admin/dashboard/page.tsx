@@ -36,6 +36,7 @@ import {
   Plus,
   Smartphone,
   Trash2,
+  Pencil,
 } from "lucide-react"
 import { useEffect, useState } from "react"
 
@@ -70,8 +71,12 @@ export default function AdminDashboard() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false)
   const [isAddDoorOpen, setIsAddDoorOpen] = useState(false)
+  const [isUpdateDoorOpen, setIsUpdateDoorOpen] = useState(false)
+  const [isUpdateDeviceOpen, setIsUpdateDeviceOpen] = useState(false)
   const [expandedDoors, setExpandedDoors] = useState<string[]>([])
   const [deleteDevice, setDeleteDevice] = useState<{ doorId: string; deviceIndex: number } | null>(null)
+  const [updateDoorId, setUpdateDoorId] = useState<string | null>(null)
+  const [updateDeviceData, setUpdateDeviceData] = useState<{ doorId: string; deviceIndex: number } | null>(null)
   const [doors, setDoors] = useState<Door[]>([])
   const [history, setHistory] = useState<HistoryLog[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -148,6 +153,50 @@ export default function AdminDashboard() {
       setIsAddDeviceOpen(false)
     } catch (err) {
       setError("Failed to add device")
+      console.error(err)
+    }
+  }
+
+  const handleUpdateDoor = async (doorId: string, newName: string) => {
+    try {
+      const response = await axios.put(`${baseUrl}/devices/update`, {
+        roomId: doorId,
+        name: newName
+      })
+      setDoors(doors.map(door => 
+        door._id === doorId 
+          ? { ...door, name: newName }
+          : door
+      ))
+      setIsUpdateDoorOpen(false)
+      setUpdateDoorId(null)
+    } catch (err) {
+      setError("Failed to update door name")
+      console.error(err)
+    }
+  }
+
+  const handleUpdateDevice = async (doorId: string, deviceId: string, newName: string) => {
+    try {
+      const response = await axios.put(`${baseUrl}/devices/update`, {
+        roomId: doorId,
+        deviceId,
+        nameUser: newName
+      })
+      setDoors(doors.map(door => 
+        door._id === doorId 
+          ? { 
+              ...door, 
+              authData: door.authData.map(auth => 
+                auth.data === deviceId ? { ...auth, name: newName } : auth
+              )
+            }
+          : door
+      ))
+      setIsUpdateDeviceOpen(false)
+      setUpdateDeviceData(null)
+    } catch (err) {
+      setError("Failed to update device name")
       console.error(err)
     }
   }
@@ -308,134 +357,153 @@ export default function AdminDashboard() {
                     <TableHead>Door Name</TableHead>
                     <TableHead>Auth Methods</TableHead>
                     <TableHead>Created At</TableHead>
+                    <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
-                  {doors.flatMap((door) => [
-                    <TableRow key={`${door._id}-main`}>
-                      <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => toggleDoorExpansion(door._id)}>
-                          {expandedDoors.includes(door._id) ? (
-                            <ChevronDown className="h-4 w-4" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </TableCell>
-                      <TableCell>{door.name}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant="link"
-                          onClick={() => toggleDoorExpansion(door._id)}
-                          className="p-0 h-auto font-normal"
-                        >
-                          Show more devices ({door.authData.length})
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        {new Date(door.createdAt).toLocaleDateString()}
-                      </TableCell>
-                    </TableRow>,
-                    expandedDoors.includes(door._id) && (
-                      <TableRow key={`${door._id}-expanded`} className="bg-muted/50">
-                        <TableCell colSpan={4}>
-                          <div className="py-2 px-4">
-                            <Table>
-                              <TableHeader>
-                                <TableRow>
-                                  <TableHead>Auth Method</TableHead>
-                                  <TableHead>Device ID</TableHead>
-                                  <TableHead>Name</TableHead>
-                                  <TableHead>Created At</TableHead>
-                                  <TableHead></TableHead>
-                                </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                {door.authData.map((auth: AuthData, index: number) => (
-                                  <TableRow key={index}>
-                                    <TableCell className="capitalize">{auth.method}</TableCell>
-                                    <TableCell>{auth.data}</TableCell>
-                                    <TableCell>{auth.name}</TableCell>
-                                    <TableCell>
-                                      {new Date(auth.createdAt).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setDeleteDevice({ doorId: door._id, deviceIndex: index })}
-                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                                <TableRow>
-                                  <TableCell colSpan={5} className="text-center py-4">
-                                    <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
-                                      <DialogTrigger asChild>
-                                        <Button variant="outline" className="w-[200px]">
-                                          <Plus className="h-4 w-4 mr-2" />
-                                          Add Device
-                                        </Button>
-                                      </DialogTrigger>
-                                      <DialogContent>
-                                        <DialogHeader>
-                                          <DialogTitle>Add New Device</DialogTitle>
-                                          <DialogDescription>
-                                            Add a new authentication device to {door.name}
-                                          </DialogDescription>
-                                        </DialogHeader>
-                                        <form onSubmit={(e) => {
-                                          e.preventDefault()
-                                          const formData = new FormData(e.currentTarget)
-                                          handleAddDevice(
-                                            door._id, // Sử dụng trực tiếp door._id
-                                            formData.get("method") as string,
-                                            formData.get("name") as string,
-                                            formData.get("data") as string
-                                          )
-                                        }}>
-                                          <div className="space-y-4 py-4">
-                                            <div className="space-y-2">
-                                              <Label htmlFor="method">Auth Method</Label>
-                                              <Select name="method">
-                                                <SelectTrigger>
-                                                  <SelectValue placeholder="Select auth method" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                  <SelectItem value="fingerprint">Fingerprint</SelectItem>
-                                                  <SelectItem value="rfid">RFID</SelectItem>
-                                                  <SelectItem value="password">Password</SelectItem>
-                                                </SelectContent>
-                                              </Select>
-                                            </div>
-                                            <div className="space-y-2">
-                                              <Label htmlFor="name">Name</Label>
-                                              <Input name="name" id="name" placeholder="Enter user name" />
-                                            </div>
-                                            <div className="space-y-2">
-                                              <Label htmlFor="data">Data</Label>
-                                              <Input name="data" id="data" placeholder="Enter device data" />
-                                            </div>
-                                            <Button type="submit" className="w-full" disabled={isLoading}>
-                                              {isLoading ? "Adding..." : "Add Device"}
-                                            </Button>
-                                          </div>
-                                        </form>
-                                      </DialogContent>
-                                    </Dialog>
+                <TableBody>{doors.flatMap((door) => [
+                  <TableRow key={`${door._id}-main`}>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" onClick={() => toggleDoorExpansion(door._id)}>
+                        {expandedDoors.includes(door._id) ? (<ChevronDown className="h-4 w-4" />) : (<ChevronRight className="h-4 w-4" />)}
+                      </Button>
+                    </TableCell>
+                    <TableCell>{door.name}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="link"
+                        onClick={() => toggleDoorExpansion(door._id)}
+                        className="p-0 h-auto font-normal"
+                      >
+                        Show more devices ({door.authData.length})
+                      </Button>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(door.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setUpdateDoorId(door._id)
+                          setIsUpdateDoorOpen(true) // Mở dialog Update Door
+                        }}
+                        className="hover:bg-gray-200"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>,
+                  expandedDoors.includes(door._id) && (
+                    <TableRow key={`${door._id}-expanded`} className="bg-muted/50">
+                      <TableCell colSpan={5}>
+                        <div className="py-2 px-4">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Auth Method</TableHead>
+                                <TableHead>Device ID</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Created At</TableHead>
+                                <TableHead></TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {door.authData.map((auth: AuthData, index: number) => (
+                                <TableRow key={index}>
+                                  <TableCell className="capitalize">{auth.method}</TableCell>
+                                  <TableCell>{auth.data}</TableCell>
+                                  <TableCell>{auth.name}</TableCell>
+                                  <TableCell>
+                                    {new Date(auth.createdAt).toLocaleDateString()}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => setDeleteDevice({ doorId: door._id, deviceIndex: index })}
+                                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => {
+                                        setUpdateDeviceData({ doorId: door._id, deviceIndex: index })
+                                        setIsUpdateDeviceOpen(true) // Mở dialog Update Device
+                                      }}
+                                      className="hover:bg-gray-200"
+                                    >
+                                      <Pencil className="h-4 w-4" />
+                                    </Button>
                                   </TableCell>
                                 </TableRow>
-                              </TableBody>
-                            </Table>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  ])}
-                </TableBody>
+                              ))}
+                              <TableRow>
+                                <TableCell colSpan={5} className="text-center py-4">
+                                  <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
+                                    <DialogTrigger asChild>
+                                      <Button variant="outline" className="w-[200px]">
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Add Device
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Add New Device</DialogTitle>
+                                        <DialogDescription>
+                                          Add a new authentication device to {door.name}
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <form onSubmit={(e) => {
+                                        e.preventDefault()
+                                        const formData = new FormData(e.currentTarget)
+                                        handleAddDevice(
+                                          door._id,
+                                          formData.get("method") as string,
+                                          formData.get("name") as string,
+                                          formData.get("data") as string
+                                        )
+                                      }}>
+                                        <div className="space-y-4 py-4">
+                                          <div className="space-y-2">
+                                            <Label htmlFor="method">Auth Method</Label>
+                                            <Select name="method">
+                                              <SelectTrigger>
+                                                <SelectValue placeholder="Select auth method" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                <SelectItem value="fingerprint">Fingerprint</SelectItem>
+                                                <SelectItem value="rfid">RFID</SelectItem>
+                                                <SelectItem value="password">Password</SelectItem>
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="name">Name</Label>
+                                            <Input name="name" id="name" placeholder="Enter user name" />
+                                          </div>
+                                          <div className="space-y-2">
+                                            <Label htmlFor="data">Data</Label>
+                                            <Input name="data" id="data" placeholder="Enter device data" />
+                                          </div>
+                                          <Button type="submit" className="w-full" disabled={isLoading}>
+                                            {isLoading ? "Adding..." : "Add Device"}
+                                          </Button>
+                                        </div>
+                                      </form>
+                                    </DialogContent>
+                                  </Dialog>
+                                </TableCell>
+                              </TableRow>
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                ])}</TableBody>
               </Table>
             </CardContent>
           </Card>
@@ -521,6 +589,76 @@ export default function AdminDashboard() {
       </div>
 
       <main className="flex-1 overflow-y-auto p-6">{renderContent()}</main>
+
+      {/* Dialog Update Door */}
+      <Dialog open={isUpdateDoorOpen} onOpenChange={(open) => { setIsUpdateDoorOpen(open); if (!open) setUpdateDoorId(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Door Name</DialogTitle>
+            <DialogDescription>Update the name of the selected door</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            const formData = new FormData(e.currentTarget)
+            if (updateDoorId) {
+              handleUpdateDoor(updateDoorId, formData.get("doorName") as string)
+            }
+          }}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="doorName">Door Name</Label>
+                <Input 
+                  id="doorName" 
+                  name="doorName" 
+                  placeholder="Enter new door name" 
+                  defaultValue={doors.find(d => d._id === updateDoorId)?.name || ''} 
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Updating..." : "Update Door"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Update Device */}
+      <Dialog open={isUpdateDeviceOpen} onOpenChange={(open) => { setIsUpdateDeviceOpen(open); if (!open) setUpdateDeviceData(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Update Device User Name</DialogTitle>
+            <DialogDescription>Update the user name of the selected device</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            const formData = new FormData(e.currentTarget)
+            if (updateDeviceData) {
+              const door = doors.find(d => d._id === updateDeviceData.doorId)
+              const device = door?.authData[updateDeviceData.deviceIndex]
+              if (door && device) {
+                handleUpdateDevice(updateDeviceData.doorId, device.data, formData.get("name") as string)
+              }
+            }
+          }}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">User Name</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  placeholder="Enter new user name" 
+                  defaultValue={
+                    updateDeviceData && doors.find(d => d._id === updateDeviceData.doorId)?.authData[updateDeviceData.deviceIndex]?.name || ''
+                  } 
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Updating..." : "Update Device"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!deleteDevice} onOpenChange={() => setDeleteDevice(null)}>
         <AlertDialogContent>
