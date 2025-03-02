@@ -31,8 +31,6 @@ export default function LoginPage() {
       const { token } = response.data; 
 
       localStorage.setItem("token", token);
-
-      // Redirect to /user page
       router.push("/admin/dashboard");
 
     } catch (error) {
