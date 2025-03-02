@@ -41,6 +41,7 @@ jobs:
       MONGO_EXPRESS_PASSWORD: ${{secrets.MONGO_EXPRESS_PASSWORD}}
       JWT_SECRET: ${{secrets.JWT_SECRET}}
       DB_NAME: ${{secrets.DB_NAME}}
+      HMAC_SECRET_KEY: ${{secrets.HMAC_SECRET_KEY}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
