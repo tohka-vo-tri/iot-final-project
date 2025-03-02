@@ -1,4 +1,4 @@
-import { addFingerprint, addNewDevice, addRfid, deleteDevice, deleteRoom, getAllDevices, updateDevice } from '@/controllers/device.controller';
+import { addFingerprint, addNewDevice, addRfid, deleteDevice, deleteRoom, getAllDevices, updateDevice,updateRoom,changesPassword, addPassword } from '@/controllers/device.controller';
 import { authMiddleware } from '@/middlewares/auth.middleware';
 import { hmacMiddleware } from '@/middlewares/hmac.middleware';
 import express from 'express';
@@ -9,6 +9,9 @@ router.put('/add-rfid',hmacMiddleware, addRfid);
 router.post('/init-device', authMiddleware, addNewDevice);
 router.get('/getall',getAllDevices); 
 router.delete('/delete',deleteRoom);
-router.delete('/deleteDevice',deleteDevice);
-router.put('/updateDevice',updateDevice);
+router.delete('/delete-device',deleteDevice);
+router.put('/update-device',updateDevice);
+router.put('changes-password',changesPassword);
+router.put('/update-room',updateRoom);
+router.put('/add-password',addPassword);
 export default router;

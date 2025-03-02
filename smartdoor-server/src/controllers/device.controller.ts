@@ -9,7 +9,7 @@ type TDeviceRequestBody = {
 }
 
 export const addFingerprint = async (req: Request, res: Response): Promise<void> => {
-  const { name, fingerprint, deviceId } = req.body;
+  const { fingerprint, deviceId } = req.body;
 
   try {
     const device = await Device.findById(deviceId);
@@ -29,7 +29,7 @@ export const addFingerprint = async (req: Request, res: Response): Promise<void>
     const newAuthData: AuthData = {
       method: 'Fingerprint',
       data: fingerprint,
-      name :name, 
+      name :'unknown', 
       status: false, 
     createdAt: moment().tz('Asia/Ho_Chi_Minh').toDate(),
     };
@@ -45,7 +45,7 @@ export const addFingerprint = async (req: Request, res: Response): Promise<void>
 };
 
 export const addRfid = async (req: Request, res: Response): Promise<void> => {
-  const { name, rfid, deviceId } = req.body;
+  const { rfid, deviceId } = req.body;
 
   try {
     const device = await Device.findById(deviceId);
@@ -66,7 +66,7 @@ export const addRfid = async (req: Request, res: Response): Promise<void> => {
     const newAuthData: AuthData = {
       method: 'RFID',
       data: rfid,
-      name :name, 
+      name :'unknown', 
       status: false, 
     createdAt: moment().tz('Asia/Ho_Chi_Minh').toDate(),
     };
@@ -232,4 +232,58 @@ export const updateRoom = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-export const changesPassword = async (req: Request, res: Response): Promise<void> => {};
+export const changesPassword = async (req: Request, res: Response): Promise<void> => {
+  const { deviceId, password } = req.body;
+
+  try {
+    const device = await Device.findById(deviceId);
+    if (!device) {
+      res.status(404).json({ message: 'Device not found' });
+      return;
+    }
+    const passwordAuth = device.authData.find(
+      (auth: AuthData) => auth.method === 'Password'
+    );
+    if (!passwordAuth) {
+      res.status(400).json({ message: 'Password authentication method not found' });
+      return;
+    }
+    passwordAuth.data = password;
+    await device.save();
+    res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error });
+  }
+};
+
+export const addPassword = async (req: Request, res: Response): Promise<void> => {
+  const { roomId, password } = req.body;
+
+  try {
+    const device = await Device.findById(roomId);
+    if (!device) {
+      res.status(404).json({ message: 'Device not found' });
+      return;
+    }
+    const passwordExists = device.authData.some(
+      (auth: AuthData) => auth.method === 'Password'
+    );
+    if (passwordExists) {
+      res.status(400).json({ message: 'Password already exists for this device' });
+      return;
+    }
+    const newAuthData: AuthData = {
+      method: 'Password', 
+      data: password,
+      name :'unknown', 
+      status: false, 
+    createdAt: moment().tz('Asia/Ho_Chi_Minh').toDate(),
+    };
+    device.authData.push(newAuthData);
+    await device.save();
+    res.status(200).json({ message: 'Password added successfully' });
+  } catch (error) { 
+    res.status(500).json({ message: 'Server Error', error });
+  }
+};
+
