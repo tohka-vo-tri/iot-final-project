@@ -88,9 +88,9 @@ export default function AdminDashboard() {
       ])
       setDoors(doorsResponse.data)
       const historyData = Array.isArray(historyResponse.data.allHistory) 
-      ? historyResponse.data.allHistory 
-      : [];
-    setHistory(historyData);
+        ? historyResponse.data.allHistory 
+        : [];
+      setHistory(historyData);
     } catch (err) {
       setError("Failed to fetch data")
       console.error(err)
@@ -105,10 +105,14 @@ export default function AdminDashboard() {
 
   const handleAddDoor = async (doorName: string) => {
     try {
-      const response = await axios.post<Door>(`${baseUrl}/doors`, {
+      const response = await axios.post<Door>(`${baseUrl}/devices/init-device`, {
         name: doorName,
         authData: [],
         createdAt: new Date()
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       })
       setDoors([...doors, response.data])
       setIsAddDoorOpen(false)
@@ -121,14 +125,16 @@ export default function AdminDashboard() {
   const handleAddDevice = async (
     doorId: string,
     method: string,
-    name: string
+    name: string,
+    data: string
   ) => {
     try {
-      const response = await axios.post<AuthData>(`${baseUrl}/devices`, {
+      const url = `${baseUrl}/devices/add-${method.toLowerCase()}`
+      const response = await axios.post<AuthData>(url, {
         doorId,
         authData: {
           method,
-          data: `${method}_${Date.now()}`,
+          data,
           name,
           createdAt: new Date()
         }
@@ -196,161 +202,257 @@ export default function AdminDashboard() {
           </div>
         )
 
-        case "devices":
-          return (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Manage Devices</CardTitle>
-                {/* Giữ nguyên phần header */}
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[30px]"></TableHead>
-                      <TableHead>Door Name</TableHead>
-                      <TableHead>Auth Methods</TableHead>
-                      <TableHead>Created At</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {doors.flatMap((door) => [
-                      <TableRow key={`${door._id}-main`}>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => toggleDoorExpansion(door._id)}>
-                            {expandedDoors.includes(door._id) ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </TableCell>
-                        <TableCell>{door.name}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="link"
-                            onClick={() => toggleDoorExpansion(door._id)}
-                            className="p-0 h-auto font-normal"
-                          >
-                            Show more devices ({door.authData.length})
-                          </Button>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(door.createdAt).toLocaleDateString()}
-                        </TableCell>
-                      </TableRow>,
-                      expandedDoors.includes(door._id) && (
-                        <TableRow key={`${door._id}-expanded`} className="bg-muted/50">
-                          <TableCell colSpan={4}>
-                            <div className="py-2 px-4">
-                              <Table>
-                                <TableHeader>
-                                  <TableRow>
-                                    <TableHead>Auth Method</TableHead>
-                                    <TableHead>Device ID</TableHead>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Created At</TableHead>
-                                    <TableHead></TableHead>
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {door.authData.map((auth: AuthData, index: number) => (
-                                    <TableRow key={index}>
-                                      <TableCell className="capitalize">{auth.method}</TableCell>
-                                      <TableCell>{auth.data}</TableCell>
-                                      <TableCell>{auth.name}</TableCell>
-                                      <TableCell>
-                                        {new Date(auth.createdAt).toLocaleDateString()}
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => setDeleteDevice({ doorId: door._id, deviceIndex: index })}
-                                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </TableCell>
-                                    </TableRow>
-                                  ))}
-                                  <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-4">
-                                      <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
-                                        <DialogTrigger asChild>
-                                          <Button variant="outline" className="w-[200px]">
-                                            <Plus className="h-4 w-4 mr-2" />
-                                            Add Device
-                                          </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                          <DialogHeader>
-                                            <DialogTitle>Add New Device</DialogTitle>
-                                            <DialogDescription>
-                                              Add a new authentication device to {door.name}
-                                            </DialogDescription>
-                                          </DialogHeader>
-                                          <form onSubmit={(e) => {
-                                            e.preventDefault()
-                                            const formData = new FormData(e.currentTarget)
-                                            handleAddDevice(
-                                              door._id,
-                                              formData.get("method") as string,
-                                              formData.get("name") as string
-                                            )
-                                          }}>
-                                            <div className="space-y-4 py-4">
-                                              <div className="space-y-2">
-                                                <Label htmlFor="method">Auth Method</Label>
-                                                <Select name="method">
-                                                  <SelectTrigger>
-                                                    <SelectValue placeholder="Select auth method" />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                    <SelectItem value="fingerprint">Fingerprint</SelectItem>
-                                                    <SelectItem value="rfid">RFID</SelectItem>
-                                                    <SelectItem value="password">Password</SelectItem>
-                                                  </SelectContent>
-                                                </Select>
-                                              </div>
-                                              <div className="space-y-2">
-                                                <Label htmlFor="name">Name</Label>
-                                                <Input name="name" id="name" placeholder="Enter user name" />
-                                              </div>
-                                              <Button type="submit" className="w-full" disabled={isLoading}>
-                                                {isLoading ? "Adding..." : "Add Device"}
-                                              </Button>
-                                            </div>
-                                          </form>
-                                        </DialogContent>
-                                      </Dialog>
+      case "devices":
+        return (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>Manage Devices</CardTitle>
+              <div className="space-x-2">
+                <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline">Add Device</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Device</DialogTitle>
+                      <DialogDescription>Add a new authentication device to a door</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={(e) => {
+                      e.preventDefault()
+                      const formData = new FormData(e.currentTarget)
+                      handleAddDevice(
+                        formData.get("door") as string,
+                        formData.get("method") as string,
+                        formData.get("name") as string,
+                        formData.get("data") as string
+                      )
+                    }}>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="door">Select Door</Label>
+                          <Select name="door">
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a door" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {doors.map((door) => (
+                                <SelectItem key={door._id} value={door._id}>
+                                  {door.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="method">Auth Method</Label>
+                          <Select name="method">
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select auth method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="fingerprint">Fingerprint</SelectItem>
+                              <SelectItem value="rfid">RFID</SelectItem>
+                              <SelectItem value="password">Password</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Name</Label>
+                          <Input name="name" id="name" placeholder="Enter user name" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="data">Data</Label>
+                          <Input name="data" id="data" placeholder="Enter device data" />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                          {isLoading ? "Adding..." : "Add Device"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+
+                <Dialog open={isAddDoorOpen} onOpenChange={setIsAddDoorOpen}>
+                  <DialogTrigger asChild>
+                    <Button>Add Door</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Door</DialogTitle>
+                      <DialogDescription>Add a new door to the system</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={(e) => {
+                      e.preventDefault()
+                      const doorName = (e.currentTarget.elements.namedItem("doorName") as HTMLInputElement).value
+                      handleAddDoor(doorName)
+                    }}>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="doorName">Door Name</Label>
+                          <Input id="doorName" name="doorName" placeholder="Enter door name" />
+                        </div>
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                          {isLoading ? "Adding..." : "Add Door"}
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[30px]"></TableHead>
+                    <TableHead>Door Name</TableHead>
+                    <TableHead>Auth Methods</TableHead>
+                    <TableHead>Created At</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {doors.flatMap((door) => [
+                    <TableRow key={`${door._id}-main`}>
+                      <TableCell>
+                        <Button variant="ghost" size="icon" onClick={() => toggleDoorExpansion(door._id)}>
+                          {expandedDoors.includes(door._id) ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableCell>
+                      <TableCell>{door.name}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="link"
+                          onClick={() => toggleDoorExpansion(door._id)}
+                          className="p-0 h-auto font-normal"
+                        >
+                          Show more devices ({door.authData.length})
+                        </Button>
+                      </TableCell>
+                      <TableCell>
+                        {new Date(door.createdAt).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>,
+                    expandedDoors.includes(door._id) && (
+                      <TableRow key={`${door._id}-expanded`} className="bg-muted/50">
+                        <TableCell colSpan={4}>
+                          <div className="py-2 px-4">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Auth Method</TableHead>
+                                  <TableHead>Device ID</TableHead>
+                                  <TableHead>Name</TableHead>
+                                  <TableHead>Created At</TableHead>
+                                  <TableHead></TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {door.authData.map((auth: AuthData, index: number) => (
+                                  <TableRow key={index}>
+                                    <TableCell className="capitalize">{auth.method}</TableCell>
+                                    <TableCell>{auth.data}</TableCell>
+                                    <TableCell>{auth.name}</TableCell>
+                                    <TableCell>
+                                      {new Date(auth.createdAt).toLocaleDateString()}
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setDeleteDevice({ doorId: door._id, deviceIndex: index })}
+                                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
                                     </TableCell>
                                   </TableRow>
-                                </TableBody>
-                              </Table>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    ])}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          );
+                                ))}
+                                <TableRow>
+                                  <TableCell colSpan={5} className="text-center py-4">
+                                    <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
+                                      <DialogTrigger asChild>
+                                        <Button variant="outline" className="w-[200px]">
+                                          <Plus className="h-4 w-4 mr-2" />
+                                          Add Device
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent>
+                                        <DialogHeader>
+                                          <DialogTitle>Add New Device</DialogTitle>
+                                          <DialogDescription>
+                                            Add a new authentication device to {door.name}
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <form onSubmit={(e) => {
+                                          e.preventDefault()
+                                          const formData = new FormData(e.currentTarget)
+                                          handleAddDevice(
+                                            door._id, // Sử dụng trực tiếp door._id
+                                            formData.get("method") as string,
+                                            formData.get("name") as string,
+                                            formData.get("data") as string
+                                          )
+                                        }}>
+                                          <div className="space-y-4 py-4">
+                                            <div className="space-y-2">
+                                              <Label htmlFor="method">Auth Method</Label>
+                                              <Select name="method">
+                                                <SelectTrigger>
+                                                  <SelectValue placeholder="Select auth method" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  <SelectItem value="fingerprint">Fingerprint</SelectItem>
+                                                  <SelectItem value="rfid">RFID</SelectItem>
+                                                  <SelectItem value="password">Password</SelectItem>
+                                                </SelectContent>
+                                              </Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                              <Label htmlFor="name">Name</Label>
+                                              <Input name="name" id="name" placeholder="Enter user name" />
+                                            </div>
+                                            <div className="space-y-2">
+                                              <Label htmlFor="data">Data</Label>
+                                              <Input name="data" id="data" placeholder="Enter device data" />
+                                            </div>
+                                            <Button type="submit" className="w-full" disabled={isLoading}>
+                                              {isLoading ? "Adding..." : "Add Device"}
+                                            </Button>
+                                          </div>
+                                        </form>
+                                      </DialogContent>
+                                    </Dialog>
+                                  </TableCell>
+                                </TableRow>
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  ])}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )
 
-        case "history":
-          return (
-            <Card>
-              <CardHeader>
-                <CardTitle>History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading && <p>Loading...</p>}
-                {error && <p className="text-destructive">{error}</p>}
-                {!isLoading && !error && history.length === 0 && <p>No history records found.</p>}
-                {history.length > 0 && (
-                  <Table>
+      case "history":
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle>History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading && <p>Loading...</p>}
+              {error && <p className="text-destructive">{error}</p>}
+              {!isLoading && !error && history.length === 0 && <p>No history records found.</p>}
+              {history.length > 0 && (
+                <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Room ID</TableHead>
@@ -372,18 +474,18 @@ export default function AdminDashboard() {
                         <TableCell>{log.nameUser}</TableCell>
                         <TableCell className="capitalize">{log.action}</TableCell>
                         <TableCell>
-                            {new Date(log.timeStamp).toLocaleDateString()} {new Date(log.timeStamp).toLocaleTimeString()}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-          )
-      }
+                          {new Date(log.timeStamp).toLocaleDateString()} {new Date(log.timeStamp).toLocaleTimeString()}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        )
     }
+  }
 
   return (
     <div className="flex h-screen">
