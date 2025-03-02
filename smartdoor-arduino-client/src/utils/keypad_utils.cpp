@@ -46,14 +46,13 @@ void handle_keypad_input() {
           Serial.print("You entered: ");
           Serial.println(keyboardEnter);
           switch (currentMode) {
-              case InputMode::PASSWORD:
-                  isRegisterMode = true;
-                  break;
               case InputMode::FINGERPRINT:
                   isRegisterMode = true;
+                  trigger_event(EventType::FINGERPRINT_REGISTER_MODE_DISPLAY, wrap_send_data(keyboardEnter, "fingerprint"));
                   break;
               case InputMode::RFID:
                   isRegisterMode = true;
+                  trigger_event(EventType::RFID_REGISTER_MODE_DISPLAY, wrap_send_data(keyboardEnter, "rfid"));
                   break;
               default:
                   Serial.println("No valid mode selected!");

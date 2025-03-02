@@ -30,3 +30,15 @@ void handle_fingerprint_display(const String& payloads) {
     clear_display();
     print_to_lcd(0, "Put your finger");
 }
+
+void handle_fingerprint_register_display(const String& payloads) {
+    clear_display();
+    print_to_lcd(0, "Register Mode");
+    print_to_lcd(1, "Put your finger");
+}
+
+void handle_rfid_register_display(const String& payloads) {
+    clear_display();
+    print_to_lcd(0, "Register Mode");
+    print_to_lcd(1, "Put your rfid");
+}

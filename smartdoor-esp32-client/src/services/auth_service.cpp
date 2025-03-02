@@ -34,7 +34,7 @@ String handle_api_request(const String &endpoint, const JsonDocument &payload, c
 
 void handle_api_response(const String &responsePayload, APIEventCallback onSuccessCallback)
 {
-    DynamicJsonDocument responseDoc(256);
+    JsonDocument responseDoc;
     DeserializationError error = deserializeJson(responseDoc, responsePayload);
 
     if (error)
@@ -66,7 +66,7 @@ void handle_api_response(const String &responsePayload, APIEventCallback onSucce
 void handle_register_response(const String &responsePayload, APIEventCallback onSuccessCallback)
 {
     std::regex successPattern(".*added successfully.*");
-    DynamicJsonDocument responseDoc(256);
+    JsonDocument responseDoc;
     DeserializationError error = deserializeJson(responseDoc, responsePayload);
     if (error)
     {
