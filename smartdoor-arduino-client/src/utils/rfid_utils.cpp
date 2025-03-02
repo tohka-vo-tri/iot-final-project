@@ -38,6 +38,7 @@ void handle_rfid() {
     serializeJson(doc, jsonString);
     if (isRegisterMode) {
       trigger_event(EventType::RFID_REGISTER, jsonString);
+      isRegisterMode = false;
     }else {
       trigger_event(EventType::RFID_LOGIN, jsonString);
     }

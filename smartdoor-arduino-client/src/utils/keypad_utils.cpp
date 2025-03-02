@@ -26,18 +26,21 @@ void handle_keypad_input() {
       Serial.print("Key pressed: ");
       Serial.println(key);
       if (key == 'A') {
+          isRegisterMode = false;
           currentMode = InputMode::PASSWORD;
           Serial.println("Switched to PASSWORD mode");
           trigger_event(EventType::PASSWORD_MODE_DISPLAY, wrap_send_data(keyboardEnter, "password"));
           keyboardEnter = "";
       } 
       else if (key == 'B') {
+          isRegisterMode = false;
           currentMode = InputMode::FINGERPRINT;
           trigger_event(EventType::FINGERPRINT_MODE_DISPLAY, wrap_send_data(keyboardEnter, "fingerprint"));
           Serial.println("Switched to FINGERPRINT mode");
           keyboardEnter = "";
       } 
       else if (key == 'C') {
+          isRegisterMode = false;
           currentMode = InputMode::RFID;
           trigger_event(EventType::RFID_MODE_DISPLAY, wrap_send_data(keyboardEnter, "rfid"));
           keyboardEnter = "";
