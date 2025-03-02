@@ -1,4 +1,4 @@
-import { Device } from '@/models/DeviceModel';
+import { Device ,AuthData,AuthMethod} from '@/models/DeviceModel';
 import { User } from '@/models/UserModel';
 import { generateToken } from "@/utils/jwt.utils";
 import bcrypt from 'bcryptjs';
@@ -58,6 +58,11 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
   const { deviceId, password, rfid, fingerprint } = req.body;
 
   try {
+    if (!deviceId || (!password && !rfid && !fingerprint)) {
+      res.status(400).json({ message: 'Device ID and at least one authentication method are required' });
+      return;
+    }
+
     const device = await Device.findById(deviceId);
     if (!device) {
       res.status(404).json({ message: 'Device not found' });
@@ -66,25 +71,36 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
 
     const authData = device.authData;
     let isAuthenticated = false;
+    let authenticatedMethod: AuthMethod | null = null;
+    let authenticatedAuthData: AuthData | null = null;
+
 
     if (password) {
-      const passwordAuth = authData.find(auth => auth.method === 'Password');
-      if (passwordAuth && await bcrypt.compare(password, passwordAuth.data)) {
+      const passwordAuth = authData.find((auth: AuthData) => auth.method === 'Password');
+      if (passwordAuth && (await bcrypt.compare(password, passwordAuth.data))) {
         isAuthenticated = true;
+        authenticatedMethod = 'Password';
+        authenticatedAuthData = passwordAuth;
       }
     }
 
-    if (rfid) {
-      const rfidAuth = authData.find(auth => auth.method === 'RFID' && auth.data === rfid);
+
+    if (rfid && !isAuthenticated) {
+      const rfidAuth = authData.find((auth: AuthData) => auth.method === 'RFID' && auth.data === rfid);
       if (rfidAuth) {
         isAuthenticated = true;
+        authenticatedMethod = 'RFID';
+        authenticatedAuthData = rfidAuth;
       }
     }
 
-    if (fingerprint) {
-      const fingerprintAuth = authData.find(auth => auth.method === 'Fingerprint' && auth.data === fingerprint);
+
+    if (fingerprint && !isAuthenticated) {
+      const fingerprintAuth = authData.find((auth: AuthData) => auth.method === 'Fingerprint' && auth.data === fingerprint);
       if (fingerprintAuth) {
         isAuthenticated = true;
+        authenticatedMethod = 'Fingerprint';
+        authenticatedAuthData = fingerprintAuth;
       }
     }
 
@@ -93,9 +109,15 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
       res.status(401).json({ message: 'Authentication failed' });
       return;
     }
+
+
     await Log.create({
-      deviceId: device._id,
-      action: 'open', // Assuming successful auth means "open" action; adjust as needed
+      roomId: device._id,           
+      nameRoom: device.name,        
+      deviceId: device._id,         
+      nameDevice: device.name,    
+      nameUser: authenticatedAuthData?.name || 'Unknown', 
+      action: 'open',
       timeStamp: new Date(),
     });
     res.status(200).json({ message: 'Authentication successful' });

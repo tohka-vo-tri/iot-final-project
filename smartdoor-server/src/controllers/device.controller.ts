@@ -1,5 +1,5 @@
 import { AuthenticatedRequest } from '@/middlewares/auth.middleware';
-import { Device } from '@/models/DeviceModel';
+import { Device ,AuthData} from '@/models/DeviceModel';
 import { User } from '@/models/UserModel';
 import { Request, Response } from 'express';
 
@@ -8,19 +8,32 @@ type TDeviceRequestBody = {
 }
 
 export const addFingerprint = async (req: Request, res: Response): Promise<void> => {
-  const { email, fingerprint, deviceId } = req.body;
+  const { name, fingerprint, deviceId } = req.body;
 
   try {
-    const deviceExists = await Device.findById(deviceId);
-    if (!deviceExists) {
+    const device = await Device.findById(deviceId);
+    if (!device) {
       res.status(404).json({ message: 'Device does not exist' });
       return;
     }
-
-    await User.updateOne(
-      { email },
-      { $set: { fingerprint, dateCreateFingerprint: Date.now() } }
+    const rfidFingerprint = device.authData && device.authData.some(
+      (auth: AuthData) => auth.method === 'Fingerprint' && auth.data === fingerprint
     );
+    
+    if (rfidFingerprint) {
+      res.status(400).json({ message: 'Fingerprint already exists for this device' });
+      return;
+    }
+
+    const newAuthData: AuthData = {
+      method: 'Fingerprint',
+      data: fingerprint,
+      name :name, 
+      createdAt: new Date(),
+    };
+
+    device.authData.push(newAuthData);
+    await device.save();
 
     res.status(200).json({ message: 'Fingerprint added successfully' });
   } catch (err) {
@@ -30,19 +43,34 @@ export const addFingerprint = async (req: Request, res: Response): Promise<void>
 };
 
 export const addRfid = async (req: Request, res: Response): Promise<void> => {
-  const { email, rfid, deviceId } = req.body;
+  const { name, rfid, deviceId } = req.body;
 
   try {
-    const deviceExists = await Device.findById(deviceId);
-    if (!deviceExists) {
+    const device = await Device.findById(deviceId);
+    if (!device) {
       res.status(404).json({ message: 'Device does not exist' });
       return;
     }
-
-    await User.updateOne(
-      { email },
-      { $set: { rfid, dateCreateRfid: Date.now() } }
+    const rfidExists = device.authData && device.authData.some(
+      (auth: AuthData) => auth.method === 'RFID' && auth.data === rfid
     );
+    
+    
+    if (rfidExists) {
+      res.status(400).json({ message: 'RFID already exists for this device' });
+      return;
+    }
+
+    const newAuthData: AuthData = {
+      method: 'RFID',
+      data: rfid,
+      name :name, 
+      createdAt: new Date(),
+    };
+    
+    device.authData.push(newAuthData);
+
+    await device.save();
 
     res.status(200).json({ message: 'RFID added successfully' });
   } catch (err) {
@@ -50,7 +78,6 @@ export const addRfid = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: 'Server error' });
   }
 };
-
 export const addNewDevice = async ( req: AuthenticatedRequest & { body: TDeviceRequestBody }, res: Response): Promise<void> => {
   try {
       if (!req.user) {
@@ -93,5 +120,55 @@ export const getDeviceDetail = async (req: Request, res: Response): Promise<void
       res.status(200).json(device);
   } catch (error) {
       res.status(500).json({ message: 'Server Error', error });
+  }
+};
+export const deleteRoom = async (req: Request, res: Response): Promise<void> => {
+  const { roomId } = req.params;
+  try {
+      const device = await Device.findById(roomId);
+      if (!device) {
+          res.status(404).json({ message: 'Room not found' });
+          return;
+      }
+      await Device.findByIdAndDelete(roomId);
+      res.status(200).json({ message: 'Device deleted successfully' });
+  } catch (error) {
+      res.status(500).json({ message: 'Server Error', error });
+  }
+};
+export const deleteDevice = async (req: Request, res: Response): Promise<void> => {
+  const { roomId, deviceId } = req.body;
+  try {
+    if (!roomId || !deviceId) {
+      res.status(400).json({ message: 'Room ID and Device ID are required' });
+      return;
+    }
+
+    const room = await Device.findById(roomId);
+    if (!room) {
+      res.status(404).json({ message: 'Room not found' });
+      return;
+    }
+
+    const deviceIndex = room.authData.findIndex(
+      (auth: AuthData) => auth.data === deviceId
+    );
+
+    if (deviceIndex === -1) {
+      res.status(404).json({ message: 'Device not found' });
+      return;
+    }
+
+    await Device.updateOne(
+      { _id: roomId },
+      { $pull: { authData: { data: deviceId } } }
+    );
+
+    res.status(200).json({ message: 'Device deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Server Error', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
   }
 };

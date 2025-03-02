@@ -2,17 +2,15 @@ import swaggerAutogen from 'swagger-autogen';
 
 const doc = {
   info: {
-    title: 'Gen Express CLI',
-    description: 'Gen Express CLI API Documentation',
+    title: 'Smart Door API',
+    description: 'API for smart door system',
+    version: '1.0.0',
   },
-  host: 'localhost:8000/api',
+  host: 'localhost:8080', 
+  schemes: ['http'],     
 };
 
-const outputFile = './src/configs/swagger-output.json';
-const routes = ['./src/routes/index.ts'];
+const outputFile = './swagger-output.json'; 
+const endpointsFiles = ['./src/index.ts'];  
 
-/* NOTE: If you are using the express Router, you must pass in the 'routes' only the 
-root file where the route starts, such as index.js, app.js, routes.js, etc ... */
-
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-swaggerAutogen()(outputFile, routes, doc);
+swaggerAutogen(outputFile, endpointsFiles, doc);
