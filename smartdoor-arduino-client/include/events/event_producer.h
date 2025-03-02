@@ -12,7 +12,9 @@ enum EventType {
     PASSWORD_INPUT,
     RFID_MODE_DISPLAY,
     PASSWORD_MODE_DISPLAY,
-    FINGERPRINT_MODE_DISPLAY
+    FINGERPRINT_MODE_DISPLAY,
+    FINGERPRINT_REGISTER_MODE_DISPLAY,
+    RFID_REGISTER_MODE_DISPLAY,
 };
 
 void trigger_event(EventType eventType, const String &payload);
