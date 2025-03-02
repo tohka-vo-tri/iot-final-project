@@ -1,11 +1,11 @@
-import { addFingerprint, addNewDevice, addRfid ,getAllDevices,deleteRoom,deleteDevice} from '@/controllers/device.controller';
+import { addFingerprint, addNewDevice, addRfid, deleteDevice, deleteRoom, getAllDevices } from '@/controllers/device.controller';
 import { authMiddleware } from '@/middlewares/auth.middleware';
-import { get } from 'axios';
+import { hmacMiddleware } from '@/middlewares/hmac.middleware';
 import express from 'express';
 
 const router = express.Router();
-router.put('/add-fingerprint', addFingerprint);
-router.put('/add-rfid', addRfid);
+router.put('/add-fingerprint',hmacMiddleware , addFingerprint);
+router.put('/add-rfid',hmacMiddleware, addRfid);
 router.post('/init-device', authMiddleware, addNewDevice);
 router.get('/getall',getAllDevices); 
 router.delete('/delete',deleteRoom);

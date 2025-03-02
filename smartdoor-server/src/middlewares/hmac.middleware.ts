@@ -1,44 +1,24 @@
-import { User } from '@/models/UserModel';
+import crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
 
-export type TUserPayload = {
-    userId: string;
-    email: string;
-    name: string;
-};
+const secretKey = process.env.HMAC_SECRET_KEY!;
 
-export interface AuthenticatedRequest extends Request {
-    user?: TUserPayload;
-}
-
-const SECRET_KEY = process.env.JWT_SECRET!;
-
-export const authMiddleware = async(
-    req: AuthenticatedRequest,
+export const hmacMiddleware = async(
+    req: Request,
     res: Response,
     next: NextFunction
-): Promise<void> => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-        res.status(401).json({ message: 'Authorization token missing' });
-        return;
+): Promise<void> =>{
+    const clientSignature = req.header('x-hmac-signature');
+    if (!clientSignature) {
+      res.status(401).json({ error: 'HMAC signature missing' });
     }
-    try {
-        const decoded = jwt.verify(token, SECRET_KEY) as {userId: string};
-        console.log('bip cmnr 2',decoded);
-        const user = await User.findById(decoded.userId);
-        if (!user) {
-            res.status(401).json({message: 'User not found'});
-            return;
-        } 
-        req.user = {
-            userId: decoded.userId,
-            email: user.email,
-            name: user.name
-        };
-        next();
-    } catch (error) {
-        res.status(403).json({ message: 'Invalid or expired token' });
+    const payload = JSON.stringify(req.body);
+    const serverSignature = crypto
+      .createHmac('sha256', secretKey)
+      .update(payload)
+      .digest('hex');
+    if (clientSignature !== serverSignature) {
+      res.status(403).json({ error: 'Invalid HMAC signature' });
     }
-};
+    next();
+  };

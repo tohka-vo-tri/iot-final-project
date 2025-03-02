@@ -14,7 +14,7 @@ services:
     image: mongo-express
     restart: always
     depends_on:
-      - smartdoor-mongodb  
+      - smartdoor-mongodb
     ports:
       - 8081:8081
     environment:
@@ -31,7 +31,7 @@ services:
     container_name: smartdoor-server
     image: ${REGISTRY_USERNAME}/smartdoor-server:latest
     depends_on:
-      - smartdoor-mongodb 
+      - smartdoor-mongodb
     restart: always
     ports:
       - 10000:10000
@@ -41,6 +41,7 @@ services:
     environment:
       PORT: 10000
       JWT_SECRET: ${JWT_SECRET}
+      HMAC_SECRET_KEY: ${HMAC_SECRET_KEY}
       MONGO_URI: mongodb://${DB_USERNAME}:${DB_PASSWORD}@smartdoor-mongodb:27017/${DB_NAME}?authSource=admin
     networks:
       - smartdoor-networks
@@ -62,4 +63,4 @@ services:
 networks:
   smartdoor-networks:
     name: smartdoor_networks
-      
+
