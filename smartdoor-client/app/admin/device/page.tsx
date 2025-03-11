@@ -76,7 +76,11 @@ export default function AdminDashboard() {
     setIsLoading(true)
     try {
       const [doorsResponse] = await Promise.all([
-        axios.get<Door[]>(`${baseUrl}/devices/getall`),
+        axios.get<Door[]>(`${baseUrl}/devices/getall`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }),
       ])
       setDoors(doorsResponse.data)
     } catch (err) {
@@ -127,6 +131,10 @@ export default function AdminDashboard() {
           createdAt: new Date(),
           status: false
         }
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       })
 
       setDoors(doors.map(door =>
@@ -146,6 +154,10 @@ export default function AdminDashboard() {
       const response = await axios.put(`${baseUrl}/devices/update-room`, {
         roomId: doorId,
         name: newName
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       })
       setDoors(doors.map(door =>
         door._id === doorId
@@ -166,6 +178,10 @@ export default function AdminDashboard() {
         roomId: doorId,
         deviceId,
         password: newPassword
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       })
       setDoors(doors.map(door =>
         door._id === doorId
@@ -195,6 +211,10 @@ export default function AdminDashboard() {
         deviceId,
         nameUser: newName,
         status: newStatus
+      }, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       })
       setDoors(doors.map(door =>
         door._id === doorId
