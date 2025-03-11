@@ -20,7 +20,7 @@ char keys[ROWS][COLS] = {
 byte rowPins[ROWS] = {0, 1, 2, 3};
 byte colPins[COLS] = {4, 5, 6, 7};
 
-Keypad_I2C keypad;
+Keypad_I2C keypad = Keypad_I2C(makeKeymap(keys), rowPins, colPins, ROWS, COLS, 0x20);
 
 String wrap_send_data(String data, String key);
 String keyboardEnter = "";
