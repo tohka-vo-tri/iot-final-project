@@ -1,43 +1,6 @@
 "use client"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { cn } from "@/lib/utils"
 import axios from "axios"
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  History,
-  LayoutDashboard,
-  Menu,
-  Pencil,
-  Plus,
-  Smartphone,
-  Trash2,
-} from "lucide-react"
 import { useEffect, useState } from "react"
 
 interface AuthData {
@@ -83,23 +46,21 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null)
 
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  
+  const authHeader = () => ({
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const [doorsResponse, historyResponse] = await Promise.all([
-        axios.get<Door[]>(`${baseUrl}/devices/getall`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }),
-        axios.get<{ allHistory: HistoryLog[] }>(`${baseUrl}/logs/getall`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }),
+        axios.get<Door[]>(`${baseUrl}/devices/getall`, authHeader()),
+        axios.get<{ allHistory: HistoryLog[] }>(`${baseUrl}/logs/getall`, authHeader()),
       ]);
-  
+
       setDoors(doorsResponse.data);
       const historyData = Array.isArray(historyResponse.data.allHistory)
         ? historyResponse.data.allHistory
@@ -112,7 +73,6 @@ export default function AdminDashboard() {
       setIsLoading(false);
     }
   };
-  
 
   useEffect(() => {
     fetchData()
@@ -120,79 +80,67 @@ export default function AdminDashboard() {
 
   const handleAddDoor = async (doorName: string) => {
     try {
-      const response = await axios.post<Door>(`${baseUrl}/devices/init-device`, {
-        name: doorName,
-        authData: [],
-        createdAt: new Date()
-      }, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      })
-      setDoors([...doors, response.data])
-      setIsAddDoorOpen(false)
+      const response = await axios.post<Door>(
+        `${baseUrl}/devices/init-device`,
+        { name: doorName, authData: [], createdAt: new Date() },
+        authHeader()
+      );
+      setDoors([...doors, response.data]);
+      setIsAddDoorOpen(false);
     } catch (err) {
-      setError("Failed to add door")
-      console.error(err)
+      setError("Failed to add door");
+      console.error(err);
     }
-  }
+  };
 
-  const handleAddDevice = async (
-    doorId: string,
-    method: string,
-    name: string,
-    data: string
-  ) => {
+  const handleAddDevice = async (doorId: string, method: string, name: string, data: string) => {
     try {
-      const url = `${baseUrl}/devices/add-${method.toLowerCase()}`
-      const response = await axios.post<AuthData>(url, {
-        doorId,
-        authData: {
-          method,
-          data,
-          name,
-          createdAt: new Date()
-        }
-      })
+      const url = `${baseUrl}/devices/add-${method.toLowerCase()}`;
+      const response = await axios.post<AuthData>(
+        url,
+        { doorId, authData: { method, data, name, createdAt: new Date() } },
+        authHeader()
+      );
       
       setDoors(doors.map(door => 
         door._id === doorId 
           ? { ...door, authData: [...door.authData, response.data] }
           : door
-      ))
-      setIsAddDeviceOpen(false)
+      ));
+      setIsAddDeviceOpen(false);
     } catch (err) {
-      setError("Failed to add device")
-      console.error(err)
+      setError("Failed to add device");
+      console.error(err);
     }
-  }
+  };
 
   const handleUpdateDoor = async (doorId: string, newName: string) => {
     try {
-      const response = await axios.put(`${baseUrl}/devices/update-room`, {
-        roomId: doorId,
-        name: newName
-      })
+      await axios.put(
+        `${baseUrl}/devices/update-room`,
+        { roomId: doorId, name: newName },
+        authHeader()
+      );
       setDoors(doors.map(door => 
         door._id === doorId 
           ? { ...door, name: newName }
           : door
-      ))
-      setIsUpdateDoorOpen(false)
-      setUpdateDoorId(null)
+      ));
+      setIsUpdateDoorOpen(false);
+      setUpdateDoorId(null);
     } catch (err) {
-      setError("Failed to update door name")
-      console.error(err)
+      setError("Failed to update door name");
+      console.error(err);
     }
-  }
+  };
 
   const handleUpdateDevice = async (doorId: string, deviceId: string, newName: string) => {
     try {
-      const response = await axios.put(`${baseUrl}/devices/update-device`, {
-        roomId: doorId,
-        deviceId,
-        nameUser: newName
-      })
+      await axios.put(
+        `${baseUrl}/devices/update-device`,
+        { roomId: doorId, deviceId, nameUser: newName },
+        authHeader()
+      );
       setDoors(doors.map(door => 
         door._id === doorId 
           ? { 
@@ -202,51 +150,37 @@ export default function AdminDashboard() {
               )
             }
           : door
-      ))
-      setIsUpdateDeviceOpen(false)
-      setUpdateDeviceData(null)
+      ));
+      setIsUpdateDeviceOpen(false);
+      setUpdateDeviceData(null);
     } catch (err) {
-      setError("Failed to update device name")
-      console.error(err)
+      setError("Failed to update device name");
+      console.error(err);
     }
-  }
+  };
 
   const handleDeleteDevice = async (doorId: string, deviceIndex: number) => {
     try {
-      const door = doors.find(d => d._id === doorId)
-      if (!door) return
-      const deviceToDelete = door.authData[deviceIndex]
+      const door = doors.find(d => d._id === doorId);
+      if (!door) return;
+      const deviceToDelete = door.authData[deviceIndex];
       
       await axios.delete(`${baseUrl}/devices`, {
-        data: {
-          doorId,
-          deviceId: deviceToDelete.data
-        }
-      })
+        ...authHeader(),
+        data: { doorId, deviceId: deviceToDelete.data }
+      });
       
       setDoors(doors.map(door => 
         door._id === doorId 
           ? { ...door, authData: door.authData.filter((_, i) => i !== deviceIndex) }
           : door
-      ))
-      setDeleteDevice(null)
+      ));
+      setDeleteDevice(null);
     } catch (err) {
-      setError("Failed to delete device")
-      console.error(err)
+      setError("Failed to delete device");
+      console.error(err);
     }
-  }
-
-  const menuItems = [
-    { title: "Dashboard", value: "dashboard", icon: LayoutDashboard },
-    { title: "Manage Devices", value: "devices", icon: Smartphone },
-    { title: "History", value: "history", icon: History },
-  ]
-
-  const toggleDoorExpansion = (doorId: string) => {
-    setExpandedDoors((prev) => 
-      prev.includes(doorId) ? prev.filter((id) => id !== doorId) : [...prev, doorId]
-    )
-  }
+  };
 
   return (
       <div className="container p-6">
