@@ -85,24 +85,34 @@ export default function AdminDashboard() {
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const fetchData = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const [doorsResponse, historyResponse] = await Promise.all([
-        axios.get<Door[]>(`${baseUrl}/devices/getall`),
-        axios.get<{ allHistory: HistoryLog[] }>(`${baseUrl}/logs/getall`)
-      ])
-      setDoors(doorsResponse.data)
-      const historyData = Array.isArray(historyResponse.data.allHistory) 
-        ? historyResponse.data.allHistory 
+        axios.get<Door[]>(`${baseUrl}/devices/getall`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }),
+        axios.get<{ allHistory: HistoryLog[] }>(`${baseUrl}/logs/getall`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }),
+      ]);
+  
+      setDoors(doorsResponse.data);
+      const historyData = Array.isArray(historyResponse.data.allHistory)
+        ? historyResponse.data.allHistory
         : [];
       setHistory(historyData);
     } catch (err) {
-      setError("Failed to fetch data")
-      console.error(err)
+      setError("Failed to fetch data");
+      console.error(err);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+  
 
   useEffect(() => {
     fetchData()

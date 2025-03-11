@@ -45,7 +45,11 @@ export default function AccessLogsTable() {
     setIsLoading(true);
     try {
       const [historyResponse] = await Promise.all([
-        axios.get<{ allHistory: HistoryLog[] }>(`${baseUrl}/logs/getall`),
+        axios.get<{ allHistory: HistoryLog[] }>(`${baseUrl}/logs/getall`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }),
       ]);
       const historyData = Array.isArray(historyResponse.data.allHistory)
         ? historyResponse.data.allHistory
