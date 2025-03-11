@@ -140,35 +140,42 @@ export const deleteRoom = async (req: Request, res: Response): Promise<void> => 
   }
 };
 export const deleteDevice = async (req: Request, res: Response): Promise<void> => {
-  const { roomId, deviceId } = req.body;
+  const { roomId, data } = req.body;
+
   try {
-    if (!roomId || !deviceId) {
-      res.status(400).json({ message: 'Room ID and Device ID are required' });
+    if (!roomId || !data) {
+      res.status(400).json({ message: 'Room ID and Device Data are required' });
       return;
     }
 
-    const room = await Device.findById(roomId);
-    if (!room) {
-      res.status(404).json({ message: 'Room not found' });
-      return;
-    }
-
-    const deviceIndex = room.authData.findIndex(
-      (auth: AuthData) => auth.data === deviceId
-    );
-
-    if (deviceIndex === -1) {
+    const device = await Device.findById(roomId);
+    if (!device) {
       res.status(404).json({ message: 'Device not found' });
       return;
     }
 
-    await Device.updateOne(
-      { _id: roomId },
-      { $pull: { authData: { data: deviceId } } }
+    const deviceIndex = device.authData.findIndex(
+      (auth: AuthData) => auth.data === data
     );
 
-    res.status(200).json({ message: 'Device deleted successfully' });
+    if (deviceIndex === -1) {
+      res.status(404).json({ message: 'Device authentication data not found' });
+      return;
+    }
+
+    const updatedDevice = await Device.updateOne(
+      { _id: roomId },
+      { $pull: { authData: { data: data } } }
+    );
+
+    if (updatedDevice.modifiedCount === 0) {
+      res.status(500).json({ message: 'Failed to delete device authentication data' });
+      return;
+    }
+
+    res.status(200).json({ message: 'Device authentication data deleted successfully' });
   } catch (error) {
+    console.error('Error in deleteDevice:', error); 
     res.status(500).json({ 
       message: 'Server Error', 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -192,11 +199,13 @@ export const updateDevice = async (req: Request, res: Response): Promise<void> =
     }
     const result = await Device.updateOne(
       { _id: roomId, 'authData.data': deviceId }, 
-      { $set: { 'authData.$.name': nameUser } } ,
-      { $set: { 'authData.$.status': status } }
+      { 
+        $set: { 
+          'authData.$.name': nameUser, 
+          'authData.$.status': status 
+        } 
+      }
     );
-
-
     if (result.matchedCount === 0 || result.modifiedCount === 0) {
       res.status(404).json({ message: 'Device not found or no changes made' });
       return;
@@ -233,14 +242,15 @@ export const updateRoom = async (req: Request, res: Response): Promise<void> => 
 };
 
 export const changesPassword = async (req: Request, res: Response): Promise<void> => {
-  const { deviceId, password } = req.body;
+  const { roomId, password } = req.body;
 
   try {
-    const device = await Device.findById(deviceId);
+    const device = await Device.findById(roomId);
     if (!device) {
       res.status(404).json({ message: 'Device not found' });
       return;
     }
+    
     const passwordAuth = device.authData.find(
       (auth: AuthData) => auth.method === 'Password'
     );

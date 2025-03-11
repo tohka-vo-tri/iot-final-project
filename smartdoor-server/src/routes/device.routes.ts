@@ -11,7 +11,7 @@ router.get('/getall',getAllDevices);
 router.delete('/delete',deleteRoom);
 router.delete('/delete-device',deleteDevice);
 router.put('/update-device',updateDevice);
-router.put('changes-password',changesPassword);
+router.put('/changes-password',changesPassword);
 router.put('/update-room',updateRoom);
 router.put('/add-password',addPassword);
 export default router;
