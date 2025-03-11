@@ -3,14 +3,13 @@
 #include <Keypad_I2C.h>
 #include <ArduinoJson.h>
 #include "events/input_mode.h"
+#include "utils/i2c_address_utils.h"
 
-#define MCP23017_ADDR 0x20
 #define SDA_PIN 21
 #define SCL_PIN 22
 #define ROWS 4
 #define COLS 4
 
-// Define keypad layout
 char keys[ROWS][COLS] = {
   {'1', '2', '3', 'A'},
   {'4', '5', '6', 'B'},
@@ -18,26 +17,27 @@ char keys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-// Define row and column pins (MCP23017 pin mapping)
-byte rowPins[ROWS] = {0, 1, 2, 3};  // Adjust these based on your wiring
-byte colPins[COLS] = {4, 5, 6, 7};  // Adjust these based on your wiring
+byte rowPins[ROWS] = {0, 1, 2, 3};
+byte colPins[COLS] = {4, 5, 6, 7};
 
-// ✅ Corrected Keypad_I2C constructor (removed `&Wire`)
-Keypad_I2C keypad = Keypad_I2C(makeKeymap(keys), rowPins, colPins, ROWS, COLS, MCP23017_ADDR);
+Keypad_I2C keypad;
 
 String wrap_send_data(String data, String key);
 String keyboardEnter = "";
 bool isRegisterMode = false;
-InputMode currentMode = InputMode::PASSWORD; // Default mode
+InputMode currentMode = InputMode::PASSWORD;
 
-void setup() {
-    Wire.begin(SDA_PIN, SCL_PIN); // Start I2C on ESP32
-    Serial.begin(115200);
+void setup_keypad_device() {
+    Wire.begin(SDA_PIN, SCL_PIN);
+    byte lcdAddress = scan_i2c_address();
+  if (lcdAddress != 0) {
+    Serial.print("Keypad Address Found");
+    Serial.println(lcdAddress, HEX);
+    keypad = Keypad_I2C(makeKeymap(keys), rowPins, colPins, ROWS, COLS, lcdAddress);
     keypad.begin();
-}
-
-void loop() {
-    handle_keypad_input();
+  } else {
+    Serial.println("Keypad not found!");
+  }
 }
 
 void handle_keypad_input() {

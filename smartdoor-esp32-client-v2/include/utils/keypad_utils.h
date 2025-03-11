@@ -8,6 +8,7 @@
 extern Keypad_I2C keypad;
 extern String keyboardEnter;
 
+void setup_keypad_device();
 void handle_keypad_input();
 
 #endif

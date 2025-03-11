@@ -3,8 +3,8 @@
 #include <ArduinoJson.h>
 #include <MFRC522.h>
 #include <SPI.h>
-#define RST_PIN A0
-#define SS_PIN 10
+#define RST_PIN 5
+#define SS_PIN 2
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 void setup_rfid() {

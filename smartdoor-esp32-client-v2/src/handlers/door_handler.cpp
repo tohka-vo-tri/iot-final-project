@@ -3,7 +3,7 @@
 #include <ESP32Servo.h>
 
 Servo doorServo;
-const int SERVO_PIN = 18;
+const int SERVO_PIN = 4;
 const int OPEN_ANGLE = 90;
 const int CLOSE_ANGLE = 0;
 const int SPIN_DURATION = 3000;

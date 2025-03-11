@@ -5,8 +5,8 @@
 #include <SoftwareSerial.h>
 #include <Arduino.h>
 
-#define FINGERPRINT_RX A3
-#define FINGERPRINT_TX A4
+#define FINGERPRINT_RX 16
+#define FINGERPRINT_TX 17
 
 extern SoftwareSerial mySerial;
 extern Adafruit_Fingerprint finger;
