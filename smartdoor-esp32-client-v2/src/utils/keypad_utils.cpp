@@ -28,16 +28,12 @@ bool isRegisterMode = false;
 InputMode currentMode = InputMode::PASSWORD;
 
 void setup_keypad_device() {
-    Wire.begin(SDA_PIN, SCL_PIN);
-    byte lcdAddress = scan_i2c_address();
-  if (lcdAddress != 0) {
-    Serial.print("Keypad Address Found");
-    Serial.println(lcdAddress, HEX);
-    keypad = Keypad_I2C(makeKeymap(keys), rowPins, colPins, ROWS, COLS, lcdAddress);
-    keypad.begin();
-  } else {
-    Serial.println("Keypad not found!");
-  }
+
+    Wire.begin(SDA_PIN, SCL_PIN); // Initialize I2C with the defined SDA and SCL pins
+    keypad.begin();              // Initialize the keypad
+    Serial.println("Keypad initialized");
+  //  handle_keypad_input();
+
 }
 
 void handle_keypad_input() {
