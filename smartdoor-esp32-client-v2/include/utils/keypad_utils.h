@@ -1,14 +1,11 @@
 #ifndef KEYPAD_UTILS_H
 #define KEYPAD_UTILS_H
 
-#include <Arduino.h>
-#include <Keypad_I2C.h>
-#include <Wire.h>
+#include <Keypad.h>
 
-extern Keypad_I2C keypad;
-extern String keyboardEnter;
+extern Keypad keypad;
 
-void setup_keypad_device();
-void handle_keypad_input();
+
+char get_key();
 
 #endif

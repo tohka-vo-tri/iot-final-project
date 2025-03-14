@@ -1,16 +1,16 @@
 #include "utils/fingerprint_utils.h"
-#include "events/input_mode.h"
-#include <SoftwareSerial.h>
 #include <Adafruit_Fingerprint.h>
-
-SoftwareSerial mySerial(FINGERPRINT_RX, FINGERPRINT_TX);
+#include "events/input_mode.h"
+HardwareSerial mySerial(2);
 Adafruit_Fingerprint finger = Adafruit_Fingerprint(&mySerial);
 
 uint8_t registerID = 0;
 int enrollStep = 0;
 
 void init_fingerprint_sensor() {
+    mySerial.begin(57600, SERIAL_8N1, FINGERPRINT_RX, FINGERPRINT_TX);
     finger.begin(57600);
+
     if (finger.verifyPassword()) {
         Serial.println("✅ Fingerprint sensor initialized successfully!");
     } else {
@@ -38,7 +38,6 @@ void enroll_fingerprint() {
         }
     }
 
-    int result;
     if (enrollStep == 0) {
         Serial.println("Place your finger on the sensor...");
         enrollStep = 1;
@@ -83,21 +82,4 @@ int get_fingerprint() {
     
     result = finger.fingerFastSearch();
     return (result == FINGERPRINT_OK) ? finger.fingerID : 0;
-}
-
-void handle_fingerprint() {
-    if (currentMode != InputMode::FINGERPRINT) return;
-    int reader = get_fingerprint();
-    if (isRegisterMode) {
-        enroll_fingerprint();
-    } else {
-        if (reader > 0) {
-            Serial.print("✅ Fingerprint matched with ID: ");
-            Serial.println(reader);
-        } else if (reader == 0) {
-            Serial.println("❌ No matching fingerprint found.");
-        } else {
-            Serial.println("⚠️ Fingerprint read error.");
-        }
-    }
 }

@@ -8,12 +8,11 @@
 #define FINGERPRINT_RX 16
 #define FINGERPRINT_TX 17
 
-extern SoftwareSerial mySerial;
+extern HardwareSerial mySerial;
 extern Adafruit_Fingerprint finger;
+extern uint8_t registerID;
 
 void init_fingerprint_sensor();
 int get_fingerprint();
 void enroll_fingerprint();
-void handle_fingerprint();
-
 #endif
