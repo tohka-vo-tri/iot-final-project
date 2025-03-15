@@ -1,19 +1,17 @@
 #include "handlers/rfid_handler.h"
 #include <Arduino.h>
-#include "utils/rfid_utils.h"
 #include "events/input_mode.h"
 #include "services/auth_service.h"
 #include "utils/lcd_utils.h"
 #include "handlers/door_handler.h"
+#include "utils/serial_utils.h"
 void init_rfid_device() {
-    init_rfid();
+    setup_software_serial();
 }
 
 void handle_rfid_input() {
     if (currentMode != InputMode::RFID) return;
-    if (!is_rfid_card_present()) return;
-
-    String uidString = read_rfid_uid();
+    String uidString = read_data("RFID");
     Serial.print("UID tag: ");
     Serial.println(uidString);
 

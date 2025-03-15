@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 void send_data(String data, String key);
-String read_data();
+String read_data(String key);
 void setup_software_serial();
 bool convert_payload_to_jsondoc(const String& payload, JsonDocument& doc);
 #endif
