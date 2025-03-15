@@ -4,6 +4,10 @@
 #include "services/auth_service.h"
 #include "utils/lcd_utils.h"
 #include "handlers/door_handler.h"
+
+void handle_fingerprint_authentication(int fingerID);
+void handle_fingerprint_registration(int fingerID);
+
 void init_fingerprint_device() {
     init_fingerprint_sensor();
 }
@@ -48,13 +52,19 @@ void handle_fingerprint_registration(int fingerID) {
         if (success) {
             print_to_lcd(0, "✅ Register Success");
             delay(1000);
+            clear_display();
+            print_to_lcd(0, "Welcome, User");
+            print_to_lcd(1, "Please Choose");
+            registerID = 0;
         } else {
             print_to_lcd(0, "❌ Register Failed");
             print_to_lcd(1, "Try Again");
+            if (finger.deleteModel(registerID) == FINGERPRINT_OK) {
+                Serial.println("✅ Fingerprint deleted successfully.");
+            }
+            registerID = 0;
             delay(2000);
         }
-        print_to_lcd(0, "Welcome, User");
-        print_to_lcd(1, "Please Choose");
     });
 }
 
@@ -76,20 +86,13 @@ void handle_fingerprint_authentication(int fingerID) {
             spin_servo_on_success();
         } else {
             Serial.println("❌ Server authentication failed! Deleting fingerprint...");
-
-            if (finger.deleteModel(fingerID) == FINGERPRINT_OK) {
-                Serial.println("✅ Fingerprint deleted successfully.");
-                print_to_lcd(0, "❌ Login Failed");
-                print_to_lcd(1, "Fingerprint Deleted");
-            } else {
-                Serial.println("❌ Failed to delete fingerprint!");
-                print_to_lcd(0, "❌ Login Failed");
-                print_to_lcd(1, "Delete Error");
-            }
-
+            print_to_lcd(0, "✅ Login Failed");
+            print_to_lcd(1, "Door Close");
             delay(2000);
+            clear_display();
+            print_to_lcd(0, "Enter Fingerprint");
         }
-        print_to_lcd(0, "Enter Fingerprint");
+        
     });
 }
 

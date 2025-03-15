@@ -65,10 +65,8 @@ void enroll_fingerprint() {
     } else {
         Serial.println("❌ Failed to store fingerprint!");
     }
-
-    isRegisterMode = false;
     enrollStep = 0;
-    registerID = 0;
+    isRegisterMode = false;
 }
 
 
