@@ -299,7 +299,6 @@ export default function AdminDashboard() {
         }
       );
 
-      // Sau khi xóa thành công, cập nhật danh sách doors
       setDoors(doors.filter((door) => door._id !== doorId));
       setDeleteDoor(null);
     } catch (err) {
