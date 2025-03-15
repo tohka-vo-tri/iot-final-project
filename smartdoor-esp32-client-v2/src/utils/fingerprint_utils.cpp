@@ -36,49 +36,49 @@ void enroll_fingerprint() {
             isRegisterMode = false;
             return;
         }
+        Serial.print("🔍 Assigned ID: ");
+        Serial.println(registerID);
     }
 
-    if (enrollStep == 0) {
-        Serial.println("Place your finger on the sensor...");
-        enrollStep = 1;
+    Serial.println("🟢 Place your finger on the sensor...");
+
+    while (finger.getImage() != FINGERPRINT_OK) {
+        delay(100);
     }
-    if (enrollStep == 1 && finger.getImage() == FINGERPRINT_OK) {
-        if (finger.image2Tz(1) == FINGERPRINT_OK) {
-            Serial.println("Remove your finger...");
-            enrollStep = 2;
-        } else {
-            Serial.println("❌ Failed to capture fingerprint, try again.");
-        }
+    Serial.println("✅ Finger detected.");
+
+    if (finger.image2Tz(1) != FINGERPRINT_OK) {
+        Serial.println("❌ Failed to process fingerprint!");
+        return;
     }
-    if (enrollStep == 2 && finger.getImage() == FINGERPRINT_NOFINGER) {
-        Serial.println("Place the same finger again...");
-        enrollStep = 3;
+    Serial.println("✅ Fingerprint image converted.");
+
+    if (finger.createModel() != FINGERPRINT_OK) {
+        Serial.println("❌ Fingerprint creation failed!");
+        return;
     }
-    if (enrollStep == 3 && finger.getImage() == FINGERPRINT_OK) {
-        if (finger.image2Tz(2) == FINGERPRINT_OK) {
-            if (finger.createModel() == FINGERPRINT_OK && finger.storeModel(registerID) == FINGERPRINT_OK) {
-                Serial.print("✅ Fingerprint enrolled successfully with ID: ");
-                Serial.println(registerID);
-                isRegisterMode = false;
-                enrollStep = 0;
-                registerID = 0;
-            } else {
-                Serial.println("❌ Fingerprint enrollment failed!");
-                enrollStep = 0;
-            }
-        } else {
-            Serial.println("❌ Failed to capture fingerprint, try again.");
-            enrollStep = 0;
-        }
+    Serial.println("✅ Fingerprint template created.");
+
+    if (finger.storeModel(registerID) == FINGERPRINT_OK) {
+        Serial.print("🎉 Fingerprint stored successfully with ID: ");
+        Serial.println(registerID);
+    } else {
+        Serial.println("❌ Failed to store fingerprint!");
     }
+
+    isRegisterMode = false;
+    enrollStep = 0;
+    registerID = 0;
 }
+
+
 
 int get_fingerprint() {
     int result = finger.getImage();
     if (result != FINGERPRINT_OK) return -1;
     
     result = finger.image2Tz(1);
-    if (result != FINGERPRINT_OK) return -1;
+    if (result != FINGERPRINT_OK) return -2;
     
     result = finger.fingerFastSearch();
     return (result == FINGERPRINT_OK) ? finger.fingerID : 0;
