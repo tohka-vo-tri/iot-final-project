@@ -10,7 +10,6 @@ type TDeviceRequestBody = {
 
 export const addFingerprint = async (req: Request, res: Response): Promise<void> => {
   const { fingerprint, deviceId } = req.body;
-
   try {
     const device = await Device.findById(deviceId);
     if (!device) {
@@ -113,7 +112,7 @@ export const getAllDevices = async (req: Request, res: Response): Promise<void> 
 };
 
 export const getDeviceDetail = async (req: Request, res: Response): Promise<void> => {
-  const { deviceId } = req.params;
+  const { deviceId } = req.body;
   try {
       const device = await Device.findById(deviceId);
       if (!device) {
@@ -126,7 +125,7 @@ export const getDeviceDetail = async (req: Request, res: Response): Promise<void
   }
 };
 export const deleteRoom = async (req: Request, res: Response): Promise<void> => {
-  const { roomId } = req.params;
+  const { roomId } = req.body;
   try {
       const device = await Device.findById(roomId);
       if (!device) {

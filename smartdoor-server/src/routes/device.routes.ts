@@ -9,7 +9,7 @@ router.put('/add-fingerprint',hmacMiddleware , addFingerprint);
 router.put('/add-rfid',hmacMiddleware, addRfid);
 router.post('/init-device', authMiddleware, addNewDevice);
 router.get('/getall',authMiddleware,getAllDevices); 
-router.delete('/delete',authMiddleware,deleteRoom);
+router.delete('/delete-room',authMiddleware,deleteRoom);
 router.delete('/delete-device',authMiddleware,deleteDevice);
 router.put('/update-device',authMiddleware,updateDevice);
 router.put('/changes-password',changesPassword);

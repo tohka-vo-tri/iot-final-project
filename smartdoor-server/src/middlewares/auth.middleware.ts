@@ -26,7 +26,6 @@ export const authMiddleware = async(
     }
     try {
         const decoded = jwt.verify(token, SECRET_KEY) as {userId: string};
-        console.log('bip cmnr 2',decoded);
         const user = await User.findById(decoded.userId);
         if (!user) {
             res.status(401).json({message: 'User not found'});

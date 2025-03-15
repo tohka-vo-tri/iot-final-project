@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -32,7 +32,6 @@ export default function LoginPage() {
 
       localStorage.setItem("token", token);
 
-      // Redirect to /user page
       router.push("/admin/dashboard");
 
     } catch (error) {

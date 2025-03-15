@@ -26,7 +26,11 @@ interface HistoryLog {
 }
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-
+const authHeader = () => ({
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
 export default function AccessLogsTable() {
   // Existing state
   const [history, setHistory] = useState<HistoryLog[]>([]);
@@ -40,16 +44,14 @@ export default function AccessLogsTable() {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Fetch data (unchanged)
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const [historyResponse] = await Promise.all([
-        axios.get<{ allHistory: HistoryLog[] }>(`${baseUrl}/logs/getall`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }),
+        axios.get<{ allHistory: HistoryLog[] }>(
+          `${baseUrl}/logs/getall`,
+          authHeader()
+        ),
       ]);
       const historyData = Array.isArray(historyResponse.data.allHistory)
         ? historyResponse.data.allHistory
@@ -61,7 +63,7 @@ export default function AccessLogsTable() {
     } finally {
       setIsLoading(false);
     }
-  };
+};
 
   useEffect(() => {
     fetchData();
