@@ -10,7 +10,11 @@ dotenv.config();
 connectDB();
 const app = express();
 const PORT = process.env.PORT ?? 8000;
-const allowedOrigins = ['http://localhost:3000']; 
+const allowedOrigins: string[] = ['http://localhost:3000'];
+const frontendUrl: string = process.env.FRONTEND_URL ?? '';
+if (frontendUrl.length > 0) {
+  allowedOrigins.push(frontendUrl);
+}
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -20,8 +24,9 @@ app.use(
         callback(new Error('Not allowed by CORS'));
       }
     },
-    credentials: true, 
-  })
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    credentials: true,
+  }),
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
