@@ -457,12 +457,6 @@ export default function AdminDashboard() {
                             <TableRow>
                               <TableCell colSpan={6} className="text-center py-4">
                                 <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
-                                  <DialogTrigger asChild>
-                                    <Button variant="outline" className="w-[200px]">
-                                      <Plus className="h-4 w-4 mr-2" />
-                                      Add Auth Method
-                                    </Button>
-                                  </DialogTrigger>
                                   <DialogContent>
                                     <DialogHeader>
                                       <DialogTitle>Add New Device</DialogTitle>
