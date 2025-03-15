@@ -27,4 +27,4 @@ byte scan_i2c_address() {
       Serial.println("done");
     }
     return 0;
-  }
+}
