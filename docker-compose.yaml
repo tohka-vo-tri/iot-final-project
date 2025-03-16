@@ -42,6 +42,7 @@ services:
       PORT: 10000
       JWT_SECRET: ${JWT_SECRET}
       HMAC_SECRET_KEY: ${HMAC_SECRET_KEY}
+      FRONTEND_URL: ${FRONTEND_URL}
       MONGO_URI: mongodb://${DB_USERNAME}:${DB_PASSWORD}@smartdoor-mongodb:27017/${DB_NAME}?authSource=admin
     networks:
       - smartdoor-networks
@@ -63,4 +64,3 @@ services:
 networks:
   smartdoor-networks:
     name: smartdoor_networks
-
