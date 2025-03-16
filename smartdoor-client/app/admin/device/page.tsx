@@ -421,7 +421,7 @@ export default function AdminDashboard() {
                             {door.authData.map((auth: AuthData, index: number) => (
                               <TableRow key={index}>
                                 <TableCell className="capitalize">{auth.method}</TableCell>
-                                <TableCell>{auth.method === 'password' ? '********' : auth.data}</TableCell>
+                                <TableCell>{auth.method === 'Password' ? '********' : auth.data}</TableCell>
                                 <TableCell>{auth.name}</TableCell>
                                 <TableCell>
                                   <Switch checked={auth.status} />
@@ -433,7 +433,7 @@ export default function AdminDashboard() {
                                     size="icon"
                                     onClick={() => {
                                       setUpdateDeviceData({ doorId: door._id, deviceIndex: index });
-                                      if (auth.method === 'password') {
+                                      if (auth.method === 'Password') {
                                         setIsUpdatePasswordDeviceOpen(true);
                                       } else {
                                         setIsUpdateDeviceOpen(true);
