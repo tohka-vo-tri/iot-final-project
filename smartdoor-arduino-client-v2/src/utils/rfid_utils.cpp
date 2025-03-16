@@ -1,10 +1,11 @@
 #include "utils/rfid_utils.h"
-#include "events/input_mode.h"
 #include <ArduinoJson.h>
 #include <MFRC522.h>
 #include <SPI.h>
-#define RST_PIN 5
-#define SS_PIN 2
+#include "utils/serial_utils.h"
+
+#define RST_PIN A0
+#define SS_PIN 10
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
 void setup_rfid() {
@@ -14,8 +15,6 @@ void setup_rfid() {
 }
 
 void handle_rfid() {
-  if (currentMode != InputMode::RFID) return;
-
     String uidString = "";
     if (!mfrc522.PICC_IsNewCardPresent()) {
         return;
@@ -35,10 +34,5 @@ void handle_rfid() {
     doc["rfid"] = uidString;
     String jsonString;
     serializeJson(doc, jsonString);
-    if (isRegisterMode) {
-      isRegisterMode = false;
-    }else {
-    }
-    
-    currentMode = InputMode::NONE;
+    send_data(jsonString, "RFID");
 }

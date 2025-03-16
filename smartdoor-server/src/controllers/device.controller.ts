@@ -10,7 +10,6 @@ type TDeviceRequestBody = {
 
 export const addFingerprint = async (req: Request, res: Response): Promise<void> => {
   const { fingerprint, deviceId } = req.body;
-
   try {
     const device = await Device.findById(deviceId);
     if (!device) {

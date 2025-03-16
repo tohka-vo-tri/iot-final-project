@@ -14,15 +14,9 @@
 		},
     {
       "path": "smartdoor-esp32-client-v2"
+    },
+    {
+      "path": "smartdoor-arduino-client-v2"
     }
-	],
-	"settings": {
-		"files.associations": {
-			"*.js": "javascript",
-			"*.scss": "scss",
-			"string_view": "cpp",
-			"regex": "cpp",
-			"bitset": "cpp"
-		}
-	},
+	]
 }

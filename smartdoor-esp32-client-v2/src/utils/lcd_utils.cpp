@@ -3,14 +3,21 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 
-#define SDA_PIN 16
-#define SCL_PIN 17
 
 LiquidCrystal_I2C lcd(0x00, 16, 2);
 
 void setup_lcd_device () {
-   Wire.begin(SDA_PIN, SCL_PIN);
-  lcd = LiquidCrystal_I2C(0x27, 16, 2);
+   Wire.begin();
+   byte lcdAddress = scan_i2c_address();
+  if (lcdAddress != 0) {
+    Serial.print("LCD Address Found");
+    Serial.println(lcdAddress, HEX);
+    lcd = LiquidCrystal_I2C(lcdAddress, 16, 2);
+    lcd.init();
+    lcd.backlight();
+  } else {
+    Serial.println("LCD not found!");
+  }
   lcd.setBacklight(true);
 }
 
