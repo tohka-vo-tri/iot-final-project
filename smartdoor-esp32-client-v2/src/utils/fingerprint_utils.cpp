@@ -62,7 +62,10 @@ void enroll_fingerprint() {
     // Yêu cầu người dùng đặt ngón tay lần 1
     Serial.println("🟢 Place your finger flat on the sensor...");
     while (finger.getImage() != FINGERPRINT_OK) {
-        delay(100); // Chờ người dùng đặt ngón tay
+        clear_display();
+        print_to_lcd(0, "Register Finger");
+        print_to_lcd(1, "Put Finger");
+        delay(2000);
     }
     Serial.println("✅ Finger detected.");
 
@@ -82,7 +85,10 @@ void enroll_fingerprint() {
     // Yêu cầu người dùng đặt ngón tay lần 2
     Serial.println("🟢 Place the same finger on the sensor at a slightly different angle...");
     while (finger.getImage() != FINGERPRINT_OK) {
-        delay(100); // Chờ người dùng đặt ngón tay lại
+      clear_display();
+        print_to_lcd(0, "Register Finger");
+        print_to_lcd(1, "Put Finger Again");
+        delay(2000);
     }
     Serial.println("✅ Finger detected again.");
 
@@ -126,6 +132,7 @@ void enroll_fingerprint() {
     enrollStep = 0; 
     isRegisterMode = false; 
 }
+
 int get_fingerprint()
 {
     int result = finger.getImage();

@@ -73,7 +73,6 @@ void handle_fingerprint_registration(int fingerID) {
             delay(1000);
             clear_display();
             print_to_lcd(0, "Welcome, User");
-
             print_to_lcd(1, "Please Choose");
             registerID = 0; // Reset after successful registration
         } else {
@@ -93,10 +92,10 @@ void handle_fingerprint_registration(int fingerID) {
 
 
 void handle_fingerprint_authentication(int fingerID) {
-    if (fingerID == 0) {
-        Serial.println("❌ No matching fingerprint found.");
-        return;
-    }
+    // if (fingerID == 0) {
+    //     Serial.println("❌ No matching fingerprint found.");
+    //     return;
+    // }
 
     String fingerIDStr = String(fingerID);
     Serial.print("✅ Fingerprint Matched! ID: ");

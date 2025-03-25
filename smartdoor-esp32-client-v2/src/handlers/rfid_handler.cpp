@@ -30,8 +30,8 @@ void handle_rfid_input() {
                 print_to_lcd(1, "Door Lock");
                 delay(2000);
                 clear_display();
-                print_to_lcd(0, "Welcome, User");
-                print_to_lcd(1, "Please Choice");
+                print_to_lcd(0, "Register RFID");
+                print_to_lcd(1, "PUt RFID");
             }
         });
     } else {
@@ -48,7 +48,6 @@ void handle_rfid_input() {
             } else {
                 clear_display();
                 print_to_lcd(0, "Login Failed");
-                print_to_lcd(1, "Door Lock");
                 delay(2000);
                 clear_display();
                 print_to_lcd(0, "Enter RFID");
