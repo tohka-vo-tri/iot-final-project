@@ -65,7 +65,7 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
 
     const device = await Device.findById(deviceId);
     if (!device) {
-      res.status(404).json({ message: 'Device not found' });
+      res.status(404).json({ message: 'Room not found' });
       return;
     }
 
@@ -104,7 +104,6 @@ export const checkDeviceAuth = async (req: Request, res: Response): Promise<void
       }
     }
 
-    console.log('devicesadsdasdsa',rfid,fingerprint,password);
     if (!isAuthenticated) {
       res.status(401).json({ message: 'Authentication failed' });
       return;

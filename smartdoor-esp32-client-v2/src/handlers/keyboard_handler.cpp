@@ -6,6 +6,7 @@
 #include "services/auth_service.h"
 #include "events/input_mode.h"
 #include "ArduinoJson.h"
+#include "utils/led_utils.h"
 String keyboardEnter = "";
 void register_print_mode (InputMode& mode);
 void handle_keypad_input() {
@@ -60,18 +61,25 @@ void handle_keypad_input() {
                 handle_password_login(keyboardEnter, [](bool success) {
                     if (success) {
                         clear_display();
+                        digitalWrite(LED_GREEN, HIGH);  // Bật LED xanh khi thành công
+                        digitalWrite(LED_RED, LOW);
                         print_to_lcd(0, "Login Success");
                         print_to_lcd(1, "Door Opened");
                         spin_servo_on_success();
+                        delay(5000);
                         clear_display();
+                        digitalWrite(LED_GREEN, LOW);  // Tắt LED xanh sau khi mở cửa
                         print_to_lcd(0, "Welcome, User");
                         print_to_lcd(1, "Please Choice");
 
                     } else {
                         clear_display();
+                        digitalWrite(LED_RED, HIGH);  // Bật LED đỏ khi thất bại
+                        digitalWrite(LED_GREEN, LOW);
                         print_to_lcd(0, "Login Failed");
                         print_to_lcd(1, "Door Lock");
                         delay(2000);
+                        digitalWrite(LED_RED, LOW);  // Tắt LED đỏ sau khi thất bại
                         clear_display();
                         print_to_lcd(0, "Enter Password");
                     }

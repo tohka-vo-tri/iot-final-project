@@ -4,6 +4,7 @@
 #include "services/auth_service.h"
 #include "utils/lcd_utils.h"
 #include "handlers/door_handler.h"
+#include "utils/led_utils.h"
 
 void handle_fingerprint_authentication(int fingerID);
 void handle_fingerprint_registration(int fingerID);
@@ -41,7 +42,7 @@ void handle_fingerprint_registration(int fingerID) {
         Serial.println(fingerID);
         Serial.println("Registration aborted.");
         clear_display();
-        print_to_lcd(0, "❌ Finger Exists");
+        print_to_lcd(0, " Finger Exists");
         print_to_lcd(1, "Try Another Finger");
         delay(2000); // Delay to allow user to notice the message
         return;
@@ -69,15 +70,22 @@ void handle_fingerprint_registration(int fingerID) {
     handle_fingerprint_register(fingerIDStr, [fingerIDStr](const bool &success) {
         clear_display();
         if (success) {
+            digitalWrite(LED_GREEN, HIGH);  // Bật LED xanh khi thành công
+            digitalWrite(LED_RED, LOW);
             print_to_lcd(0, "Register Success");
-            delay(1000);
+            delay(2000);
+            digitalWrite(LED_GREEN, LOW);  // Tắt LED xanh sau khi mở cửa
             clear_display();
             print_to_lcd(0, "Welcome, User");
             print_to_lcd(1, "Please Choose");
             registerID = 0; // Reset after successful registration
         } else {
+            digitalWrite(LED_RED, HIGH);  // Bật LED đỏ khi thất bại
+            digitalWrite(LED_GREEN, LOW);
             print_to_lcd(0, "Register Failed");
             print_to_lcd(1, "Try Again");
+            delay(2000);
+            digitalWrite(LED_RED, LOW);  // Tắt LED đỏ sau khi thất bại
             // Xóa mẫu vân tay trên cảm biến nếu server từ chối
             if (finger.deleteModel(fingerIDStr.toInt()) == FINGERPRINT_OK) {
                 Serial.println("✅ Fingerprint deleted successfully from sensor.");
@@ -104,18 +112,23 @@ void handle_fingerprint_authentication(int fingerID) {
     handle_fingerprint_login(fingerIDStr, [fingerID](const bool &success) {
         clear_display();
         if (success) {
+            digitalWrite(LED_GREEN, HIGH);  // Bật LED xanh khi thành công
+            digitalWrite(LED_RED, LOW);
             print_to_lcd(0, "Login Success");
             print_to_lcd(1, "Door Opened");
             spin_servo_on_success();
-            delay(2000);
+            delay(5000);
+            digitalWrite(LED_GREEN, LOW);  // Tắt LED xanh sau khi mở cửa
             clear_display();
             print_to_lcd(0, "Welcome, User");
             print_to_lcd(1, "Please Choice");
         } else {
-            Serial.println("❌ Server authentication failed");
+            digitalWrite(LED_RED, HIGH);  // Bật LED đỏ khi thất bại
+            digitalWrite(LED_GREEN, LOW);
             print_to_lcd(0, "Login Failed");
             print_to_lcd(1, "Door Close");
             delay(2000);
+            digitalWrite(LED_RED, LOW);  // Tắt LED đỏ sau khi thất bại
             clear_display();
             print_to_lcd(0, "Enter Fingerprint");
         }
